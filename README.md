@@ -12,12 +12,12 @@ scripts using Symfony Dependency Injection and Slim.
 
 ### How to use it
 
-On deployment:
+#### On deployment:
 
 `bin/deploy` - The included deployment script downloads PHP dependencies, copies environment-based configuration
 files, and caches the service container. This script is designed for use with HAL 9000.
 
-For development:
+#### For development:
 
 The initial application may be installed with `bin/install && bin/normalize-configuration`. Do not run
 `normalize-configuration` more than once, as is it will overwrite your custom development settings.
