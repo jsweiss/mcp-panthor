@@ -24,12 +24,12 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class SlimConfigurator
 {
     /**
-     * @var ContainerInterface
+     * @type ContainerInterface
      */
     private $di;
 
     /**
-     * @var array
+     * @type array
      */
     private $hooks;
 
