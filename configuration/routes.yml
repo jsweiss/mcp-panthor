@@ -1,0 +1,9 @@
+parameters:
+    routes: []
+
+
+        # A standard route
+        # home:
+        #     method: GET
+        #     route: '/'
+        #     stack: ['api.home']

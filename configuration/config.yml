@@ -1,10 +1,12 @@
 imports:
   - resource: di.yml
   - resource: config.env.yml
+  - resource: routes.yml
 
 # environment independent parameters
 parameters:
     applicationId: 200001
     slim.hooks:
         slim.before: []
-        slim.before.router: []
+        slim.before.router:
+            - 'slim.hook.routes'
