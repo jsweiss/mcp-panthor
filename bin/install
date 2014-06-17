@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+DIR=$( cd "$( dirname "$0" )" && pwd )
+
+STABILITY_FLAG="--no-dev"
+if [ -z  "$HAL_ENVIRONMENT" ] ; then
+    STABILITY_FLAG="--dev"
+fi
+
+"$DIR/composer" install \
+--prefer-dist \
+$STABILITY_FLAG
