@@ -1,4 +1,9 @@
 services:
+    # The root path must never be cached!
+    # Note: This path has NO TRAILING SLASH
+    root:
+        synthetic: true
+
     slim:
         class: 'Slim\Slim'
         arguments:
