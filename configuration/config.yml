@@ -1,0 +1,10 @@
+imports:
+  - resource: di.yml
+  - resource: config.env.yml
+
+# environment independent parameters
+parameters:
+    applicationId: 200001
+    slim.hooks:
+        slim.before: []
+        slim.before.router: []

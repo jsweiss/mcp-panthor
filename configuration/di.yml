@@ -1,0 +1,8 @@
+services:
+    slim:
+        class: 'Slim\Slim'
+        arguments:
+            - debug: '%debug%'
+        configurator: ['@slim.configurator', 'configure']
+    slim.configurator:
+        class: 'QL\Panthor\SlimConfigurator'
