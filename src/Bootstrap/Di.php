@@ -30,7 +30,7 @@ class Di
      *
      * @return ContainerBuilder
      */
-    protected static function buildDi($root)
+    public static function buildDi($root)
     {
         $container = new ContainerBuilder;
         $builder = new YamlFileLoader($container, new FileLocator($root));
