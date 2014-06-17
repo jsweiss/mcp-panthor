@@ -1,4 +1,3 @@
-panthor
-=======
+## Panthor
 
-A smaller, more nimble microframework skeleton application for Slim
+A smaller, more nimble microframework skeleton application using Slim.
