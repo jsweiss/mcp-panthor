@@ -10,4 +10,4 @@ services:
             - debug: '%debug%'
         configurator: ['@slim.configurator', 'configure']
     slim.configurator:
-        class: 'QL\Panthor\SlimConfigurator'
+        class: 'QL\Panthor\Bootstrap\SlimConfigurator'
