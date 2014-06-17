@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -u
+set -e
+
+if [ -z  "$HAL_ENVIRONMENT" ] ; then
+    echo "Hal environment not found. Nothing to do."
+    exit 1
+fi
+
+DIR=$( cd "$( dirname "$0" )" && pwd )
+
+"$DIR/install"
+"$DIR/normalize-configuration"
+"$DIR/dump-di"
