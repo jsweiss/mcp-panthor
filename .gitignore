@@ -1,0 +1,10 @@
+# miscellaneous
+phpunit.xml
+
+# deployment
+/configuration/config.env.yml
+/src/CachedContainer.php
+
+# package installation
+/node_modules/
+/vendor/
