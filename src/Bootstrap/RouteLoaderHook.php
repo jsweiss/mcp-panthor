@@ -144,7 +144,7 @@ class RouteLoaderHook
         // check for invalid method types
         foreach ($methods as $method) {
             if (!isset($this->methods[$method])) {
-                throw new RuntimeException(sprintf('Unknown HTTP method: %s', $method);
+                throw new RuntimeException(sprintf('Unknown HTTP method: %s', $method));
             }
         }
 

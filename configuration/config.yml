@@ -5,7 +5,8 @@ imports:
 
 # environment independent parameters
 parameters:
-    applicationId: 200001
+    application.id: 200001
+
     slim.hooks:
         slim.before: []
         slim.before.router:

@@ -11,7 +11,7 @@ services:
         configurator: ['@slim.configurator', 'configure']
     slim.configurator:
         class: 'QL\Panthor\Bootstrap\SlimConfigurator'
-
+        arguments: ['@service_container', '%slim.hooks%']
     slim.hook.routes:
-        class: 'Ql\Panthor\Bootstrap\RouteLoaderHook'
+        class: 'QL\Panthor\Bootstrap\RouteLoaderHook'
         arguments: ['@service_container', '%routes%']
