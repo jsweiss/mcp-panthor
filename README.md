@@ -21,3 +21,30 @@ files, and caches the service container. This script is designed for use with HA
 
 The initial application may be installed with `bin/install && bin/normalize-configuration`. Do not run
 `normalize-configuration` more than once, as is it will overwrite your custom development settings.
+
+
+### Web server configuration
+
+#### Apache
+
+```
+<!-- $SERVER_NAME -->
+<!-- $APPLICATION_ROOT -->
+<VirtualHost *:80>
+    ServerName $SERVER_NAME
+    DocumentRoot $APPLICATION_ROOT
+
+    <Directory $APPLICATION_ROOT>
+        RewriteEngine On
+        RewriteBase /
+        RewriteCond %{REQUEST_FILENAME} !-f
+        RewriteRule ^ index.php [QSA,L]
+    </Directory>
+</VirtualHost>
+```
+
+#### NGINX
+
+```
+tbd
+```
