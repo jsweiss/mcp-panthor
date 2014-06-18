@@ -44,6 +44,7 @@ class SlimConfigurator
 
     /**
      * @param Slim $slim
+     *
      * @return null
      */
     public function configure(Slim $slim)
@@ -60,6 +61,7 @@ class SlimConfigurator
      *
      * @param Slim $slim
      * @param string $key
+     *
      * @return Closure
      */
     private function hookClosure(Slim $slim, $key)

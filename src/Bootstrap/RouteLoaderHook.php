@@ -60,6 +60,7 @@ class RouteLoaderHook
      * Load routes into the application
      *
      * @param Slim $slim
+     *
      * @return null
      */
     public function __invoke(Slim $slim)
@@ -96,6 +97,7 @@ class RouteLoaderHook
      * Convert an array of keys to middleware callables
      *
      * @param string[] $stack
+     *
      * @return callable[]
      */
     private function convertStackToCallables(array $stack)
@@ -113,6 +115,8 @@ class RouteLoaderHook
     }
 
     /**
+     * Builds the arguments passed to all middleware or controllers.
+     *
      * @return array
      */
     private function getServiceParameters()
@@ -128,6 +132,7 @@ class RouteLoaderHook
     /**
      * @param array $routeDetails
      * @throws RuntimeException
+     *
      * @return string[]
      */
     private function methods(array $routeDetails)
@@ -158,6 +163,7 @@ class RouteLoaderHook
     /**
      * @param string $key
      * @param array $data
+     *
      * @return mixed
      */
     private function nullable($key, array $data)
