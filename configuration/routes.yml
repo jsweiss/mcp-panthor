@@ -3,9 +3,9 @@ parameters:
 
         # Basic route
         # No method will match ANY method
-        # example.basic:
-        #     route: '/example'
-        #     stack: ['page.example']
+        hello.world:
+            route: '/'
+            stack: ['page.hello.world']
 
         # Route with parameter and conditions
         # example.routeParameter:

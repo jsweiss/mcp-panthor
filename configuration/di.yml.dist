@@ -21,3 +21,10 @@ services:
     slim.hook.routes:
         class: 'QL\Panthor\Bootstrap\RouteLoaderHook'
         arguments: ['@service_container', '%routes%']
+
+    page.hello.world:
+        class: '{{ application.namespace }}\TestController'
+        arguments:
+            - '@slim.environment'
+            - '@slim.request'
+            - '@slim.response'
