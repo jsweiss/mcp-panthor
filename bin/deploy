@@ -4,7 +4,7 @@ set -u
 set -e
 
 if [ -z  "$HAL_ENVIRONMENT" ] ; then
-    echo "Hal environment not found. Nothing to do."
+    echo "HAL 9000 environment not found. Nothing to do."
     exit 1
 fi
 
