@@ -1,8 +1,14 @@
 services:
-    # The root path must never be cached!
+    # Injected at runtime by the Bootstrap
     # Note: This path has NO TRAILING SLASH
-    root:
-        synthetic: true
+    root:               {synthetic: true}
+
+    # Injected at runtime by the RouteLoader
+    slim.environment:   {synthetic: true}
+    slim.request:       {synthetic: true}
+    slim.response:      {synthetic: true}
+    slim.parameters:    {synthetic: true}
+    slim.halt:          {synthetic: true}
 
     slim:
         class: 'Slim\Slim'
@@ -15,3 +21,11 @@ services:
     slim.hook.routes:
         class: 'QL\Panthor\Bootstrap\RouteLoaderHook'
         arguments: ['@service_container', '%routes%']
+
+    test.page:
+        class: 'QL\Panthor\Controller\Test'
+        arguments:
+            - @slim.environment
+            - @slim.request
+            - @slim.response
+            - @slim.halt
