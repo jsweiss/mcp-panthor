@@ -123,7 +123,7 @@ class PostInstallCommand
         $packageName = $io->ask('Application package name: ', self::DEFAULT_PACKAGE_NAME);
 
         $json = file_get_contents($filename);
-        $data = json_decode($json);
+        $data = json_decode($json, true);
 
         $data['name'] = $packageName;
         $data['description'] = '';
