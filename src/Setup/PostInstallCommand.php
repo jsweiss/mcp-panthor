@@ -66,7 +66,8 @@ README;
         $io->write('');
         $io->write('Installation almost finished!');
         $io->write('Run "composer update" to finalize dependencies.');
-        $io->write('Run "git init" to create a git repository.');
+        $io->write('Run "bin/normalize-configuration" to copy dev configuration".');
+        $io->write('Run "git init" to create the initial git repository.');
     }
 
     /**
