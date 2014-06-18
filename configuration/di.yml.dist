@@ -23,7 +23,7 @@ services:
         arguments: ['@service_container', '%routes%']
 
     page.hello.world:
-        class: '{{ application.namespace }}\TestController'
+        class: '{{ application.namespace }}\Controller\TestController'
         arguments:
             - '@slim.environment'
             - '@slim.request'
