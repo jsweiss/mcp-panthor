@@ -127,10 +127,10 @@ class PostInstallCommand
 
         $data['name'] = $packageName;
         $data['description'] = '';
-        $data['autoload']['psr-4'] = [$namespace => 'src'];
+        $data['autoload']['psr-4'] = [$namespace . '\\' => 'src'];
         unset($data['scripts']);
 
-        file_put_contents($filename, json_encode($data, JSON_PRETTY_PRINT));
+        file_put_contents($filename, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
     }
 
     /**
