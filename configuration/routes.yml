@@ -1,9 +1,33 @@
 parameters:
     routes: []
 
+        # Basic route
+        # No method will match ANY method
+        # example.basic:
+        #     route: '/example'
+        #     stack: ['page.example']
 
-        # A standard route
-        # home:
-        #     method: GET
-        #     route: '/'
-        #     stack: ['api.home']
+        # Route with parameter and conditions
+        # example.routeParameter:
+        #     method: 'GET'
+        #     route: '/example/entities/:id'
+        #     stack: ['page.example']
+        #     conditions:
+        #         id: '[\d]+'
+
+        # Route that matches multiple methods
+        # example.multipleMethods:
+        #     method:
+        #         - 'GET'
+        #         - 'POST'
+        #         - 'PUT'
+        #     route: '/example/new'
+        #     stack: ['page.example']
+
+        # Route with middleware. The controller is always the last service.
+        # example.middleware:
+        #     method: 'GET'
+        #     route: '/example/remove'
+        #     stack:
+        #         - 'middleware.loginChecker'
+        #         - 'page.example'
