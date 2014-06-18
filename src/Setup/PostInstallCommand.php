@@ -62,7 +62,7 @@ class PostInstallCommand
      *
      * @return null
      */
-    public static function derp(Event $event)
+    public static function run(Event $event)
     {
         $root = __DIR__ . '/../..';
         $appRoot = getcwd();
