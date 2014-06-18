@@ -89,12 +89,13 @@ class PostInstallCommand
         $cmdBin = sprintf('cp -R -v "%s/bin" "%s/bin"', $this->root, $this->appRoot);
         $cmdConfig = sprintf('cp -R -v "%s/configuration" "%s/configuration"', $this->root, $this->appRoot);
         $cmdPublic = sprintf('cp -R -v "%s/public" "%s/public"', $this->root, $this->appRoot);
-        $cmdPublic = sprintf('cp -R -v "%s/src-application" "%s/src"', $this->root, $this->appRoot);
+        $cmdSrc = sprintf('cp -R -v "%s/src-application" "%s/src"', $this->root, $this->appRoot);
 
         $io->write('Copying application files');
         exec($cmdBin);
         exec($cmdConfig);
         exec($cmdPublic);
+        exec($cmdSrc);
     }
 
     /**
@@ -158,6 +159,9 @@ class PostInstallCommand
 
         $io->write('Preparing public/index.php');
         $this->prepareDistFile('public/index.php', $namespace);
+
+        $io->write('Preparing src/Controller/TestController.php');
+        $this->prepareDistFile('src/Controller/TestController.php', $namespace);
     }
 
     /**
