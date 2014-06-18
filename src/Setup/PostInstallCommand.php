@@ -58,11 +58,9 @@ class PostInstallCommand
         $this->prepareComposerConfiguration($io, $namespace);
         $io->write('');
 
-        $io->write('');
         $io->write('Installation almost finished!');
         $io->write('Run "composer update" to finalize dependencies.');
         $io->write('Run "git init" to create a git repository.');
-
     }
 
     /**
