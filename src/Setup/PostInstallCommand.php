@@ -53,8 +53,16 @@ class PostInstallCommand
 
         $this->copyConfiguration($io);
         $this->prepareDists($io, $namespace);
+        $io->write('');
 
         $this->prepareComposerConfiguration($io, $namespace);
+        $io->write('');
+
+        $io->write('');
+        $io->write('Installation almost finished!');
+        $io->write('Run "composer update" to finalize dependencies.');
+        $io->write('Run "git init" to create a git repository.');
+
     }
 
     /**
@@ -168,6 +176,10 @@ class PostInstallCommand
         $contents = str_replace('{{ application.namespace }}', $namespace, $contents);
 
         file_put_contents($targetFilename, $contents);
+
+        $perm = fileperms($distFilename);
+        chmod($targetFilename, $perm);
+
         unlink($distFilename);
     }
 }
