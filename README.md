@@ -38,7 +38,7 @@ middleware and controllers may implement, but no type checks are performed.
 The Bootstrap and RouteLoader will populate several **runtime services** that are available to be used as dependencies
 for any service.
 
-service            | Description
+Service            | Description
 ------------------ | -----------
 root               | The application root. NO TRAILING SLASH.
 slim.environment   | Slim\Environment
