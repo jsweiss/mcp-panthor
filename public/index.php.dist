@@ -5,7 +5,7 @@
  *    is strictly prohibited.
  */
 
-namespace QL\Panthor\Bootstrap;
+namespace {{ application.namespace }}\Bootstrap;
 
 if (!$container = @include __DIR__ . '/../configuration/bootstrap.php') {
     http_response_code(500);
