@@ -17,9 +17,7 @@ class PostInstallCommand
         $io = $event->getIO();
 
 
-        $wd = $composer->getConfig()->get('working-dir');
         $io->write('derp derp');
-        $io->write('working dir='. $wd);
 
         // sanitize these files:
 
@@ -29,5 +27,9 @@ class PostInstallCommand
 
         // overwrite composer.json
         // ask user for package name
+        $package = $event->getComposer()->getPackage();
+        $root = $composer->getInstallationManager()->getInstallPath($package);
+
+        $io->write(var_export($root, true));
     }
 }

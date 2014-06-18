@@ -1,6 +1,6 @@
 {
     "name": "ql/panthor",
-    "description": "A smaller, more nimble microframework skeleton application using Slim",
+    "description": "Symfony + Slim = Panthor",
     "license": "proprietary",
 
     "autoload": {
