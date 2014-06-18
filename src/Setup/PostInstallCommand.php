@@ -58,14 +58,12 @@ README;
         $description = $this->getDescription($io);
 
         $this->copyConfiguration($io);
+
         $this->prepareDists($io, $namespace);
-        $io->write('');
-
         $this->prepareComposerConfiguration($io, $namespace, $packageName, $description);
-        $io->write('');
-
         $this->prepareReadme($io, $packageName, $description);
 
+        $io->write('');
         $io->write('Installation almost finished!');
         $io->write('Run "composer update" to finalize dependencies.');
         $io->write('Run "git init" to create a git repository.');
@@ -162,6 +160,8 @@ README;
      */
     private function prepareComposerConfiguration(IOInterface $io, $namespace, $packageName, $description)
     {
+        $io->write('Fixing composer.json');
+
         $filename = $this->appRoot. '/composer.json';
 
         $json = file_get_contents($filename);
