@@ -6,13 +6,15 @@
  *    is strictly prohibited.
  */
 
-namespace QL\Panthor\Bootstrap;
+namespace {{ application.namespace }}\Bootstrap;
+
+use QL\Panthor\Bootstrap\Di;
 
 $root = __DIR__ . '/..';
 require_once $root . '/configuration/bootstrap.php';
 
 $file = $root . '/src/CachedContainer.php';
-$class = 'QL\Panthor\CachedContainer';
+$class = '{{ application.namespace }}\CachedContainer';
 $container = Di::buildDi($root);
 
 file_put_contents($file, Di::dumpDi($container, $class));
