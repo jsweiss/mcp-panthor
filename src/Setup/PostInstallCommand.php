@@ -14,7 +14,11 @@ class PostInstallCommand
 {
     const DEFAULT_NAMESPACE = 'QL\SampleApplication';
     const DEFAULT_PACKAGE_NAME = 'ql/sample-application';
+    const DEFAULT_README = <<<README
+## %s
 
+%s
+README;
     /**
      * The root directory of this package after it is installed.
      *
@@ -50,13 +54,17 @@ class PostInstallCommand
 
         // app settings
         $namespace = $this->getApplicationNamespace($io);
+        $packageName = $this->getPackageName($io);
+        $description = $this->getDescription($io);
 
         $this->copyConfiguration($io);
         $this->prepareDists($io, $namespace);
         $io->write('');
 
-        $this->prepareComposerConfiguration($io, $namespace);
+        $this->prepareComposerConfiguration($io, $namespace, $packageName, $description);
         $io->write('');
+
+        $this->prepareReadme($io, $packageName, $description);
 
         $io->write('Installation almost finished!');
         $io->write('Run "composer update" to finalize dependencies.');
@@ -103,37 +111,64 @@ class PostInstallCommand
      *
      * @param IOInterface $io
      *
-     * @return null
+     * @return string
      */
     private function getApplicationNamespace(IOInterface $io)
     {
         $io->write('Please enter the namespace of your application.');
-        $io->write('Example: "QL\SampleApplication"');
+        $io->write(sprintf('Example: "%s"', self::DEFAULT_NAMESPACE));
 
         $namespace = $io->ask('Application namespace: ', self::DEFAULT_NAMESPACE);
         return rtrim($namespace, '\\');
     }
 
     /**
+     * Get the package name for the project being created.
+     *
+     * @param IOInterface $io
+     *
+     * @return string
+     */
+    private function getPackageName(IOInterface $io)
+    {
+        $io->write('Please enter the package name of your application.');
+        $io->write(sprintf('Example: "%s"', self::DEFAULT_PACKAGE_NAME));
+
+        return $io->ask('Application package name: ', self::DEFAULT_PACKAGE_NAME);
+    }
+
+    /**
+     * Get the descriptionfor the project being created.
+     *
+     * @param IOInterface $io
+     *
+     * @return string|null
+     */
+    private function getDescription(IOInterface $io)
+    {
+        $io->write('Please enter a description for your application.');
+        $io->write('This is optional.');
+
+        return $io->ask('Application description:');
+    }
+
+    /**
      * @param IOInterface $io
      * @param string $namespace
+     * @param string $packageName
+     * @param string|null $description
      *
      * @return null
      */
-    private function prepareComposerConfiguration(IOInterface $io, $namespace)
+    private function prepareComposerConfiguration(IOInterface $io, $namespace, $packageName, $description)
     {
         $filename = $this->appRoot. '/composer.json';
-
-        $io->write('Please enter the package name of your application.');
-        $io->write('Example: "ql/sample-application"');
-
-        $packageName = $io->ask('Application package name: ', self::DEFAULT_PACKAGE_NAME);
 
         $json = file_get_contents($filename);
         $data = json_decode($json, true);
 
         $data['name'] = $packageName;
-        $data['description'] = '';
+        $data['description'] = ($description) ?: '';
         $data['autoload']['psr-4'] = [$namespace . '\\' => 'src'];
         unset($data['scripts']);
 
@@ -186,5 +221,23 @@ class PostInstallCommand
         chmod($targetFilename, $perm);
 
         unlink($distFilename);
+    }
+
+    /**
+     * @param IOInterface $io
+     * @param string $packageName
+     * @param string|null $description
+     *
+     * @return null
+     */
+    private function prepareReadme(IOInterface $io, $packageName, $description)
+    {
+        $io->write('Creating a default README.md');
+
+        $filename = $this->appRoot . '/README.md';
+        $description = ($description) ? $description . "\n" : '';
+        $contents = sprintf(self::DEFAULT_README, $packageName, $description);
+
+        file_put_contents($filename, $contents);
     }
 }
