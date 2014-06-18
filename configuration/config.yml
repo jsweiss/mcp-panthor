@@ -8,6 +8,5 @@ parameters:
     application.id: 200001
 
     slim.hooks:
-        slim.before: []
         slim.before.router:
             - 'slim.hook.routes'
