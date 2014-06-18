@@ -1,5 +1,5 @@
 parameters:
-    routes: []
+    routes:
 
         # Basic route
         # No method will match ANY method
