@@ -89,8 +89,8 @@ class PostInstallCommand
         $cmdBin = sprintf('cp -R -v "%s/bin" "%s/bin"', $this->root, $this->appRoot);
         $cmdConfig = sprintf('cp -R -v "%s/configuration" "%s/configuration"', $this->root, $this->appRoot);
         $cmdPublic = sprintf('cp -R -v "%s/public" "%s/public"', $this->root, $this->appRoot);
+        $cmdPublic = sprintf('cp -R -v "%s/src-application" "%s/src"', $this->root, $this->appRoot);
 
-        // copy bin/, configuration/, public/
         $io->write('Copying application files');
         exec($cmdBin);
         exec($cmdConfig);
@@ -107,7 +107,7 @@ class PostInstallCommand
     private function getApplicationNamespace(IOInterface $io)
     {
         $io->write('Please enter the namespace of your application.');
-        $io->write('Examples: "QL\SampleApplication", "QL\SubNamespace\Example"');
+        $io->write('Example: "QL\SampleApplication"');
 
         $namespace = $io->ask('Application namespace: ', self::DEFAULT_NAMESPACE);
         return rtrim($namespace, '\\');
@@ -149,6 +149,9 @@ class PostInstallCommand
     {
         $io->write('Preparing bin/dump-di');
         $this->prepareDistFile('bin/dump-di', $namespace);
+
+        $io->write('Preparing configuration/di.yml');
+        $this->prepareDistFile('configuration/di.yml', $namespace);
 
         $io->write('Preparing configuration/bootstrap.php');
         $this->prepareDistFile('configuration/bootstrap.php', $namespace);
