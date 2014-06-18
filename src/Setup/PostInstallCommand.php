@@ -7,6 +7,7 @@
 
 namespace QL\Panthor\Setup;
 
+use Composer\IO\IOInterface;
 use Composer\Script\Event;
 
 class PostInstallCommand
@@ -48,14 +49,10 @@ class PostInstallCommand
         $io->write('Application Root: ' . $this->appRoot);
 
         // app settings
-        // ask IO for this
-        $namespace = $io->ask('Please enter the namespace of your application.',  'QL\SampleApplication');
+        $namespace = $this->getApplicationNamespace($io);
 
-        $this->copyConfiguration();
-
-        $this->sanitizeDistFile('bin/dump-di', $namespace);
-        $this->sanitizeDistFile('configuration/bootstrap.php', $namespace);
-        $this->sanitizeDistFile('public/index.php', $namespace);
+        $this->copyConfiguration($io);
+        $this->sanitizeDists($io, $namespace);
 
         // overwrite composer.json
         // ask user for package name
@@ -77,9 +74,10 @@ class PostInstallCommand
     /**
      * Copy required configuration to the application.
      *
+     * @param IOInterface $io
      * @return null
      */
-    private function copyConfiguration()
+    private function copyConfiguration(IOInterface $io)
     {
         $cmdBin = sprintf('cp -R -v "%s/bin" "%s/bin"', $this->root, $this->appRoot);
         $cmdConfig = sprintf('cp -R -v "%s/configuration" "%s/configuration"', $this->root, $this->appRoot);
@@ -93,6 +91,38 @@ class PostInstallCommand
     }
 
     /**
+     * Get the namespace for the project being created.
+     *
+     * @param IOInterface $io
+     * @return null
+     */
+    private function getApplicationNamespace(IOInterface $io)
+    {
+        $io->write('Please enter the namespace of your application:');
+        $io->write('Examples: "QL\SampleApplication", "QL\SubNamespace\Example"');
+
+        $namespace = $io->ask('Application namespace: ', 'QL\SampleApplication');
+        return rtrim($namespace, '\\');
+    }
+
+    /**
+     * @param IOInterface $io
+     * @param string $namespace
+     * @return null
+     */
+    private function sanitizeDists(IOInterface $io, $namespace)
+    {
+        $io->write('Preparing bin/dump-di');
+        $this->sanitizeDistFile('bin/dump-di', $namespace);
+
+        $io->write('Preparing configuration/bootstrap.php');
+        $this->sanitizeDistFile('configuration/bootstrap.php', $namespace);
+
+        $io->write('Preparing public/index.php');
+        $this->sanitizeDistFile('public/index.php', $namespace);
+    }
+
+    /**
      * Sanitize dist file.
      *
      * @param string $filename
@@ -101,7 +131,6 @@ class PostInstallCommand
      */
     private function sanitizeDistFile($filename, $namespace)
     {
-        $io->write('Preparing ' . $filename);
         $targetFilename = $this->appRoot. '/' . $filename;
         $distFilename = $targetFilename . '.dist';
 
