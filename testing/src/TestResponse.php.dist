@@ -1,0 +1,44 @@
+<?php
+/**
+ * @copyright ©2014 Quicken Loans Inc. All rights reserved. Trade Secret,
+ *    Confidential and Proprietary. Any dissemination outside of Quicken Loans
+ *    is strictly prohibited.
+ */
+
+namespace {{ application.namespace }}\Testing;
+
+use Slim\Http\Response;
+use Slim\Http\Util;
+
+class TestResponse extends Response
+{
+    /**
+     * Return a string representation of the complete http response.
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        //Fetch status, header, and body
+        list($status, $headers, $body) = $this->response->finalize();
+
+        Util::serializeCookies($headers, $this->cookies, ['cookies.encrypt' => false]);
+
+        $response = sprintf('HTTP/1.1 %s', self::getMessageForCode($status));
+
+        //Send headers
+        foreach ($headers as $name => $value) {
+            $hValues = explode("\n", $value);
+            foreach ($hValues as $hVal) {
+                $reponse .= "$name: $hVal\n" ;
+            }
+        }
+
+        //Send body, but only if it isn't a HEAD request
+        if (!$this->isHead()) {
+            $response .= $body;
+        }
+
+        return $response;
+    }
+}
