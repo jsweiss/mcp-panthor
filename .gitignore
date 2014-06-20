@@ -1,4 +1,5 @@
-# miscellaneous
+# testing
+/.phpunit/
 phpunit.xml
 
 # deployment
