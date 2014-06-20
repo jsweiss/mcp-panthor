@@ -8,6 +8,9 @@
             "QL\\Panthor\\": "src"
         }
     },
+    "config": {
+        "preferred-install": "dist"
+    },
     "repositories": [
         {
             "type": "composer",
