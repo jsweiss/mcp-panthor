@@ -99,7 +99,7 @@ README;
             'public' => 'public',
             'src-application' => 'src',
             'testing' => 'testing'
-        ]
+        ];
 
         $io->write('Copying application files');
 
