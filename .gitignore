@@ -7,5 +7,6 @@ phpunit.xml
 /src/CachedContainer.php
 
 # package installation
+/composer.lock
 /node_modules/
 /vendor/
