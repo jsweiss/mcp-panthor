@@ -98,7 +98,8 @@ README;
             'configuration' => 'configuration',
             'public' => 'public',
             'src-application' => 'src',
-            'testing' => 'testing'
+            'testing' => 'testing',
+            'phpunit.xml.dist' => 'phpunit.xml.dist'
         ];
 
         $io->write('Copying application files');
