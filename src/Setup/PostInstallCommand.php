@@ -9,6 +9,7 @@ namespace QL\Panthor\Setup;
 
 use Composer\IO\IOInterface;
 use Composer\Script\Event;
+use DirectoryIterator;
 
 class PostInstallCommand
 {
@@ -58,6 +59,7 @@ README;
         $description = $this->getDescription($io);
 
         $this->copyConfiguration($io);
+        $this->makeBinsWriteable($io);
 
         $this->prepareDists($io, $namespace);
         $this->prepareComposerConfiguration($io, $namespace, $packageName, $description);
@@ -156,6 +158,32 @@ README;
         $io->write('This is optional.');
 
         return $io->ask('Application description:');
+    }
+
+    /**
+     * For dists, composer does not make files executable. We must ensure the bins
+     * are executable for the created application.
+     *
+     * @param IOInterface $io
+     *
+     * @return null
+     */
+    private function makeBinsWriteable(IOInterface $io)
+    {
+        $io->write('Ensuring bins are executable.');
+
+        $binDir = $this->appRoot . '/bin';
+        $dir = new DirectoryIterator($binDir);
+        foreach ($dir as $file) {
+            if (!$file->isFile()) {
+                continue;
+            }
+
+            $filename = sprintf('%s/%s', $binDir, $file->getFilename());
+
+            $perm = fileperms($filename);
+            chmod($filename, $perm | 0111);
+        }
     }
 
     /**
