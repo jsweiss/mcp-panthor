@@ -28,7 +28,7 @@ class TestResponse extends Response
         $text = self::getMessageForCode($status);
 
         return
-            sprintf("HTTP/%s %s\n", $version, $status, $text) .
+            sprintf("HTTP/%s %s\n", $version, $text) .
             $this->stringifyHeaders($headers) . "\n" .
             $body;
     }
