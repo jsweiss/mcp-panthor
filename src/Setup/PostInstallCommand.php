@@ -93,16 +93,22 @@ README;
      */
     private function copyConfiguration(IOInterface $io)
     {
-        $cmdBin = sprintf('cp -R -v "%s/bin" "%s/bin"', $this->root, $this->appRoot);
-        $cmdConfig = sprintf('cp -R -v "%s/configuration" "%s/configuration"', $this->root, $this->appRoot);
-        $cmdPublic = sprintf('cp -R -v "%s/public" "%s/public"', $this->root, $this->appRoot);
-        $cmdSrc = sprintf('cp -R -v "%s/src-application" "%s/src"', $this->root, $this->appRoot);
+        $copy = [
+            'bin' => 'bin',
+            'configuration' => 'configuration',
+            'public' => 'public',
+            'src-application' => 'src',
+            'testing' => 'testing'
+        ]
 
         $io->write('Copying application files');
-        exec($cmdBin);
-        exec($cmdConfig);
-        exec($cmdPublic);
-        exec($cmdSrc);
+
+        foreach ($copy as $from => $to) {
+            $from = sprintf('%s/%s', $this->root, $from);
+            $to = sprintf('%s/%s', $this->appRoot, $to);
+            $command = sprintf('cp -R -v "%s" "%s"', $from, $to);
+            exec($command);
+        }
     }
 
     /**
@@ -170,7 +176,10 @@ README;
 
         $data['name'] = $packageName;
         $data['description'] = ($description) ?: '';
-        $data['autoload']['psr-4'] = [$namespace . '\\' => 'src'];
+        $data['autoload']['psr-4'] = [
+            $namespace . '\\' => 'src',
+            $namespace . '\\Testing\\' => 'testing/src'
+        ];
         unset($data['scripts']);
 
         file_put_contents($filename, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
@@ -184,20 +193,21 @@ README;
      */
     private function prepareDists(IOInterface $io, $namespace)
     {
-        $io->write('Preparing bin/dump-di');
-        $this->prepareDistFile('bin/dump-di', $namespace);
+        $files = [
+            'bin/dump-di',
+            'configuration/di.yml',
+            'configuration/bootstrap.php',
+            'public/index.php',
+            'src/Controller/TestController.php',
+            'testing/bootstrap.php',
+            'testing/src/TestResponse.php',
+            'testing/tests/Controller/TestControllerTest.php',
+        ];
 
-        $io->write('Preparing configuration/di.yml');
-        $this->prepareDistFile('configuration/di.yml', $namespace);
-
-        $io->write('Preparing configuration/bootstrap.php');
-        $this->prepareDistFile('configuration/bootstrap.php', $namespace);
-
-        $io->write('Preparing public/index.php');
-        $this->prepareDistFile('public/index.php', $namespace);
-
-        $io->write('Preparing src/Controller/TestController.php');
-        $this->prepareDistFile('src/Controller/TestController.php', $namespace);
+        foreach ($files as $file) {
+            $io->write(sprintf('Preparing %s', $file));
+            $this->prepareDistFile($file, $namespace);
+        }
     }
 
     /**
