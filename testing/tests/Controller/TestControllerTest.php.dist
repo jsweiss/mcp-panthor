@@ -9,19 +9,24 @@ namespace {{ application.namespace }}\Controller;
 
 use Mockery;
 use PHPUnit_Framework_TestCase;
+use QL\Panthor\Testing\FixtureLoadingTrait;
 use Slim\Environment;
 use Slim\Http\Request;
 use {{ application.namespace }}\Testing\TestResponse;
 
 class TestControllerTest extends PHPUnit_Framework_TestCase
 {
+    use FixtureLoadingTrait;
+
     public $environment;
     public $request;
     public $response;
 
     public function setUp()
     {
-        $this->environment = Environment::mock();
+        $this->environment = Environment::mock([
+            'HTTP_TEST_HEADER' => 'Testing'
+        ]);
         $this->request = new Request($this->environment);
         $this->response = new TestResponse;
     }
@@ -31,9 +36,10 @@ class TestControllerTest extends PHPUnit_Framework_TestCase
         $controller = new TestController($this->environment, $this->request, $this->response);
         $controller();
 
-        $expected = <<<DERP
-asdsadsd
-DERP;
-        $this->assertSame($expected, (string) $this->response);
+        $expectedResponse = $this->loadRawFixture('response.text');
+        $expectedHeaders = $this->loadPhpFixture('headers.phpd');
+
+        $this->assertSame($expectedResponse, (string) $this->response);
+        $this->assertSame($expectedHeaders, $this->response->headers->all());
     }
 }
