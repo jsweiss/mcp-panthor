@@ -7,7 +7,6 @@
 
 namespace {{ application.namespace }}\Controller;
 
-use Mockery;
 use PHPUnit_Framework_TestCase;
 use QL\Panthor\Testing\FixtureLoadingTrait;
 use Slim\Environment;
