@@ -7,6 +7,7 @@
 
 namespace {{ application.namespace }}\Testing;
 
+use Slim\Http\Headers;
 use Slim\Http\Response;
 use Slim\Http\Util;
 
@@ -20,23 +21,31 @@ class TestResponse extends Response
     public function __toString()
     {
         //Fetch status, header, and body
-        list($status, $headers, $body) = $this->response->finalize();
-
+        list($status, $headers, $body) = $this->finalize();
         Util::serializeCookies($headers, $this->cookies, ['cookies.encrypt' => false]);
 
-        $response = sprintf('HTTP/1.1 %s', self::getMessageForCode($status));
+        $version = '1.1';
+        $text = self::getMessageForCode($status);
 
-        //Send headers
+        return
+            sprintf("HTTP/%s %s %s\n", $version, $status, $text) .
+            $this->stringifyHeaders($headers) . "\n" .
+            $body;
+    }
+
+    /**
+     * @param Headers $headers
+     * @return string
+     */
+    private function stringifyHeaders(Headers $headers)
+    {
+        $response = '';
+
         foreach ($headers as $name => $value) {
             $hValues = explode("\n", $value);
             foreach ($hValues as $hVal) {
-                $reponse .= "$name: $hVal\n" ;
+                $response .= "$name: $hVal\n" ;
             }
-        }
-
-        //Send body, but only if it isn't a HEAD request
-        if (!$this->isHead()) {
-            $response .= $body;
         }
 
         return $response;
