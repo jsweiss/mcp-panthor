@@ -86,6 +86,9 @@ ROOT
 │   └─ ... code
 │
 └─ testing
+    ├─ fixtures
+    │   └─ ... testing fixtures
+    │
     ├─ src
     │   └─ ... testing stubs and mocks
     │
@@ -127,6 +130,9 @@ potentially allows multiple testing suites while keeping them isolated.
 For example, your testing suite may eventually expand to the following:
 ```
 testing
+├─ fixtures
+│   └─ ... testing fixtures
+│
 ├─ src
 │  └─ ... testing stubs and mocks
 │
@@ -141,18 +147,18 @@ testing
 
 Keeping all testing support within this folder allows you to easily exclude it when creating a dist of your application.
 
+Panthor includes 
+
 ### Web server configuration
 
 #### Apache
 
 ```
-<!-- $SERVER_NAME -->
-<!-- $APPLICATION_ROOT -->
 <VirtualHost *:80>
     ServerName $SERVER_NAME
-    DocumentRoot $APPLICATION_ROOT
+    DocumentRoot $APPLICATION_ROOT/public
 
-    <Directory $APPLICATION_ROOT>
+    <Directory $APPLICATION_ROOT/public>
         RewriteEngine On
         RewriteBase /
         RewriteCond %{REQUEST_FILENAME} !-f
@@ -164,5 +170,22 @@ Keeping all testing support within this folder allows you to easily exclude it w
 #### NGINX
 
 ```
-tbd
+server {
+    listen       80;
+    server_name  $SERVER_NAME;
+    root         $APPLICATION_ROOT/public;
+
+    try_files $uri /index.php;
+
+    # this will only pass index.php to the fastcgi process which is generally safer but
+    # assumes the whole site is run via Slim.
+    location /index.php {
+        fastcgi_connect_timeout 3s;
+        fastcgi_read_timeout 10s;
+        include fastcgi_params;
+        fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+
+        fastcgi_pass 127.0.0.1:9000;    # assumes you are running php-fpm locally on port 9000
+    }
+}
 ```
