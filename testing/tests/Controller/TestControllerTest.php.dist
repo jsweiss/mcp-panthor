@@ -36,7 +36,7 @@ class TestControllerTest extends PHPUnit_Framework_TestCase
         $controller = new TestController($this->environment, $this->request, $this->response);
         $controller();
 
-        $expectedResponse = $this->loadRawFixture('response.text');
+        $expectedResponse = $this->loadRawFixture('response.txt');
         $expectedHeaders = $this->loadPhpFixture('headers.phpd');
 
         $this->assertSame($expectedResponse, (string) $this->response);
