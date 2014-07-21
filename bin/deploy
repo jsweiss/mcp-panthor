@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-set -u
 set -e
 
 if [ -z  "$HAL_ENVIRONMENT" ] ; then
