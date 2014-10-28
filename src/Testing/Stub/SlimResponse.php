@@ -5,13 +5,13 @@
  *    is strictly prohibited.
  */
 
-namespace {{ application.namespace }}\Testing;
+namespace QL\Panthor\Testing\Stub;
 
 use Slim\Http\Headers;
 use Slim\Http\Response;
 use Slim\Http\Util;
 
-class TestResponse extends Response
+class SlimResponse extends Response
 {
     /**
      * Return a string representation of the complete http response.

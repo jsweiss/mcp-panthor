@@ -58,7 +58,7 @@ README;
         $packageName = $this->getPackageName($io);
         $description = $this->getDescription($io);
 
-        $this->copyConfiguration($io);
+        // $this->copyConfiguration($io);
         $this->makeBinsWriteable($io);
 
         $this->prepareDists($io, $namespace);
