@@ -1,14 +1,19 @@
 #!/usr/bin/env bash
 
+# configure
 set -e
+set -u
 
-if [ -z  "$HAL_ENVIRONMENT" ] ; then
+# declare variables
+p_HAL_ENVIRONMENT="${HAL_ENVIRONMENT:=}"
+p_DIR=$( cd "$( dirname "$0" )" && pwd )
+
+# script
+if [ -z  "$p_HAL_ENVIRONMENT" ] ; then
     echo "HAL 9000 environment not found. Nothing to do."
     exit 1
 fi
 
-DIR=$( cd "$( dirname "$0" )" && pwd )
-
-"$DIR/install"
-"$DIR/normalize-configuration"
-"$DIR/dump-di"
+"$p_DIR/install"
+"$p_DIR/normalize-configuration"
+"$p_DIR/dump-di"

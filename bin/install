@@ -1,12 +1,19 @@
 #!/usr/bin/env bash
 
-DIR=$( cd "$( dirname "$0" )" && pwd )
+# configure
+set -e
+set -u
 
-STABILITY_FLAG="--no-dev"
-if [ -z  "$HAL_ENVIRONMENT" ] ; then
-    STABILITY_FLAG="--dev"
+# declare variables
+p_HAL_ENVIRONMENT="${HAL_ENVIRONMENT:=}"
+p_DIR=$( cd "$( dirname "$0" )" && pwd )
+p_STABILITY_FLAG="--no-dev"
+
+# script
+if [ -z  "$p_HAL_ENVIRONMENT" ] ; then
+    p_STABILITY_FLAG="--dev"
 fi
 
-"$DIR/composer" install \
+"$p_DIR/composer" install \
 --prefer-dist \
-$STABILITY_FLAG
+$p_STABILITY_FLAG
