@@ -1,0 +1,141 @@
+parameters:
+    # Parameters override by application configuration
+    routes: []
+    slim.hooks:
+        slim.before.router:
+            - 'panthor.slim.hook.routes'
+
+
+    debug: false
+    date.timezone: 'America/Detroit'
+
+    # Internal panthor parameters, do not override unless you know what you are doing.
+    panthor.internal.timezone: 'UTC'
+
+services:
+    # Injected at runtime by the Bootstrap
+    # Note: This path has NO TRAILING SLASH
+    root:               {synthetic: true}
+
+    # Injected at runtime by the RouteLoader
+    slim.environment:   {synthetic: true}
+    slim.request:       {synthetic: true}
+    slim.response:      {synthetic: true}
+    slim.parameters:    {synthetic: true}
+    slim.halt:          {synthetic: true}
+
+    ############################################################################
+    # Public exported services
+    ############################################################################
+
+    slim: @panthor.slim
+    slim.router: @panthor.router.slim
+
+    url: @panthor.url
+    clock: @panthor.clock
+
+    twig.cache.dir: @panthor.twig.cache.dir
+    twig.template.dir: @panthor.twig.template.dir
+
+    twig.template: @panthor.twig.template
+    twig.context: @panthor.twig.context
+
+    twig.loader: @panthor.twig.loader
+    twig.environment: @panthor.twig.environment
+
+    ############################################################################
+    # Slim
+    #
+    # Required parameters:
+    #
+    # %routes%
+    # %slim.hooks%
+    #
+    ############################################################################
+
+    panthor.slim:
+        class: 'Slim\Slim'
+        configurator: [@panthor.slim.configurator, 'configure']
+
+    panthor.slim.router:
+        class: 'Slim\Router'
+        factory_service: 'slim'
+        factory_method: 'router'
+
+    panthor.slim.configurator:
+        class: 'QL\Panthor\Bootstrap\SlimConfigurator'
+        arguments: [@service_container, %slim.hooks%]
+
+    panthor.slim.hook.routes:
+        class: 'QL\Panthor\Bootstrap\RouteLoaderHook'
+        arguments: [@service_container, %routes%]
+
+    ############################################################################
+    # Panthor utilities
+    ############################################################################
+
+    panthor.url:
+        class: 'QL\Panthor\Utility\Url'
+        arguments:
+            - @slim
+            - @slim.request
+            - @slim.halt
+
+    panthor.clock:
+        class: 'MCP\DataType\Time\Clock'
+        arguments: ['now', %panthor.internal.timezone%]
+
+    ############################################################################
+    # Twig
+    #
+    # Required parameters:
+    #
+    # %debug%
+    # %date.timezone%
+    #
+    # %twig.debug%
+    # %twig.cache.dir%
+    # %twig.template.dir%
+    #
+    ############################################################################
+
+    panthor.twig.extension:
+        class: 'QL\Panthor\Twig\TwigExtension'
+        arguments:
+            - @panthor.url
+            - @panthor.clock
+            - %date.timezone%
+            - %debug%
+
+    panthor.twig.configurator:
+        class: 'QL\Panthor\Twig\EnvironmentConfigurator'
+        arguments: [%twig.debug%, @twig.cache.dir]
+
+    panthor.twig.template:
+        class: 'QL\Panthor\Twig\LazyTwig'
+        arguments: [@twig.environment, @twig.context]
+    panthor.twig.context:
+        class: 'QL\Panthor\Twig\Context'
+
+    panthor.twig.template.dir:
+        class: 'N/A - Factory-generated scalar'
+        factory_class: 'QL\Panthor\Utility\Stringify'
+        factory_method: 'template'
+        arguments: ['%%s/%%s', [@root, %twig.template.dir%]]
+
+    panthor.twig.cache.dir:
+        class: 'N/A - Factory-generated scalar'
+        factory_class: 'QL\Panthor\Utility\Stringify'
+        factory_method: 'template'
+        arguments: ['%%s/%%s', [@root, %twig.cache.dir%]]
+
+    panthor.twig.loader:
+        class: 'QL\Panthor\Twig\BetterCachingFilesystem'
+        arguments: [@panthor.twig.template.dir]
+
+    panthor.twig.environment:
+        class: 'Twig_Environment'
+        arguments: [@twig.loader]
+        configurator: [@panthor.twig.configurator, 'configure']
+        calls:
+            - ['addExtension', [@panthor.twig.extension]]
