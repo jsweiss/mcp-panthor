@@ -27,6 +27,9 @@
     "require-dev": {
         "mockery/mockery": "*",
         "phpunit/phpunit": "4.*",
-        "phpunit/php-invoker": "*"
+        "phpunit/php-invoker": "*",
+
+        "ql/mcp-core": "*",
+        "twig/twig": "*"
     }
 }
