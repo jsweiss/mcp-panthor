@@ -1,13 +1,18 @@
 parameters:
-    # Parameters override by application configuration
+    # Parameters overridden by application configuration
     routes: []
     slim.hooks:
         slim.before.router:
-            - 'panthor.slim.hook.routes'
+            - 'slim.hook.routes'
 
     debug: false
     date.timezone: 'America/Detroit'
     request.body.service: 'request.body'
+
+    # twig defaults
+    twig.debug: true
+    twig.template.dir: 'templates'
+    twig.cache.dir: '.twig'
 
     # Internal panthor parameters, do not override unless you know what you are doing.
     panthor.internal.timezone: 'UTC'
@@ -32,7 +37,9 @@ services:
     ############################################################################
 
     slim: @panthor.slim
-    slim.router: @panthor.router.slim
+    slim.router: @panthor.slim.router
+    slim.configurator: @panthor.slim.configurator
+    slim.hook.routes: @panthor.slim.hook.routes
 
     url: @panthor.url
     clock: @panthor.clock
@@ -62,7 +69,7 @@ services:
 
     panthor.slim:
         class: 'Slim\Slim'
-        configurator: [@panthor.slim.configurator, 'configure']
+        configurator: [@slim.configurator, 'configure']
 
     panthor.slim.router:
         class: 'Slim\Router'
@@ -110,7 +117,7 @@ services:
         arguments: ['now', %panthor.internal.timezone%]
 
     panthor.json:
-        class: 'QL\Panthor\Utility\Json
+        class: 'QL\Panthor\Utility\Json'
 
     ############################################################################
     # Twig
@@ -145,13 +152,13 @@ services:
         class: 'QL\Panthor\Twig\Context'
 
     panthor.twig.template.dir:
-        class: 'N/A - Factory-generated scalar'
+        class: 'Factory_generated_scalar'
         factory_class: 'QL\Panthor\Utility\Stringify'
         factory_method: 'template'
         arguments: ['%%s/%%s', [@root, %twig.template.dir%]]
 
     panthor.twig.cache.dir:
-        class: 'N/A - Factory-generated scalar'
+        class: 'Factory_generated_scalar'
         factory_class: 'QL\Panthor\Utility\Stringify'
         factory_method: 'template'
         arguments: ['%%s/%%s', [@root, %twig.cache.dir%]]
