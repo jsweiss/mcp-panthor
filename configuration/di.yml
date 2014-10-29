@@ -5,9 +5,9 @@ parameters:
         slim.before.router:
             - 'panthor.slim.hook.routes'
 
-
     debug: false
     date.timezone: 'America/Detroit'
+    request.body.service: 'request.body'
 
     # Internal panthor parameters, do not override unless you know what you are doing.
     panthor.internal.timezone: 'UTC'
@@ -26,6 +26,9 @@ services:
 
     ############################################################################
     # Public exported services
+    #
+    # All of these can be overridden. Just set the same service in your
+    # application configuration
     ############################################################################
 
     slim: @panthor.slim
@@ -33,6 +36,7 @@ services:
 
     url: @panthor.url
     clock: @panthor.clock
+    json: @panthor.json
 
     twig.cache.dir: @panthor.twig.cache.dir
     twig.template.dir: @panthor.twig.template.dir
@@ -43,6 +47,8 @@ services:
     twig.loader: @panthor.twig.loader
     twig.environment: @panthor.twig.environment
 
+    middleware.requestBody: @panthor.middleware.requestBody
+
     ############################################################################
     # Slim
     #
@@ -50,6 +56,7 @@ services:
     #
     # %routes%
     # %slim.hooks%
+    # %request.body.service%
     #
     ############################################################################
 
@@ -71,7 +78,24 @@ services:
         arguments: [@service_container, %routes%]
 
     ############################################################################
-    # Panthor utilities
+    # Panthor Middleware
+    #
+    # Required Parameters:
+    #
+    # %request.body.service%
+    #
+    ############################################################################
+
+    panthor.middleware.requestBody:
+        class: 'QL\Panthor\Middleware\RequestBodyMiddleware'
+        arguments:
+            - @service_container
+            - @slim.request
+            - @json
+            - %request.body.service%
+
+    ############################################################################
+    # Panthor Utilities
     ############################################################################
 
     panthor.url:
@@ -84,6 +108,9 @@ services:
     panthor.clock:
         class: 'MCP\DataType\Time\Clock'
         arguments: ['now', %panthor.internal.timezone%]
+
+    panthor.json:
+        class: 'QL\Panthor\Utility\Json
 
     ############################################################################
     # Twig
