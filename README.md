@@ -9,12 +9,22 @@ scripts using Symfony Dependency Injection and Slim.
 - `Symfony/Config` - Cascading configuration to handle merging multiple config files.
 - `Symfony/DependencyInjection` - A robust and flexible dependency injection container.
 
+### Starting a new application?
+
+For APIs, see [Panthor API](http://git/web-frameworks/panthor-api).
+
+For applications, see [Panthor Application](http://git/web-frameworks/panthor-app).
+
+When first setting up an application, we recommend using the composer `create-project` functionality for `app` or `api`. While this is not required to use Panthor, it will automate much of the configuration and get you up and running quicker.
+
 ### Documentation
 
 - [Application Structure](docs/APPLICATION_STRUCTURE.md)
   > Details on where code and configuration goes.
+
 - [How to use](docs/USAGE.md)
   > Explanations of controllers and middleware, as well as services injected into the Di Container by Panthor.
+
 - [Web Server Configuration](docs/SERVER.md)
   > Example setups for nginx and apache.
 
