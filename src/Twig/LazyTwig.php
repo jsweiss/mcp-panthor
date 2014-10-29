@@ -8,18 +8,14 @@
 namespace QL\Panthor\Twig;
 
 use InvalidArgumentException;
+use QL\Panthor\TemplateInterface;
 use Twig_Environment;
 use Twig_Template;
 
 /**
  * A simple proxy for twig to lazy load templates and allow incremental context loading.
- *
- * This can be passed to one or more "processors", which can add or modify context data that is then
- * passed to the twig template when rendered.
- *
- * @method string render(string $name, array $context = [])
  */
-class LazyTwig
+class LazyTwig implements TemplateInterface
 {
     /**
      * @type Twig_Environment
@@ -58,25 +54,6 @@ class LazyTwig
     }
 
     /**
-     * @param string $name
-     * @param array $arguments
-     *
-     * @return mixed
-     */
-    public function __call($name, $arguments)
-    {
-        if ($name === 'render') {
-            if (count($arguments) > 0) {
-                $this->context()->addContext(array_shift($arguments));
-            }
-
-            return $this->lazy()->render($this->context()->get());
-        }
-
-        return call_user_func_array([$this->lazy(), $name], $arguments);
-    }
-
-    /**
      * Get the template context.
      *
      * @return Context
@@ -84,6 +61,20 @@ class LazyTwig
     public function context()
     {
         return $this->context;
+    }
+
+    /**
+     * Render the template with context data.
+     *
+     * @param array $context
+     *
+     * @return string
+     */
+    public function render(array $context = [])
+    {
+        $this->context()->addContext($context);
+
+        return $this->lazy()->render($this->context()->get());
     }
 
     /**
@@ -96,6 +87,21 @@ class LazyTwig
     public function setTemplate($template)
     {
         $this->template = $template;
+    }
+
+    /**
+     * Convenience method if you need access to the Twig_Template directly.
+     *
+     * You should not need to use this.
+     *
+     * @param string $name
+     * @param array $arguments
+     *
+     * @return mixed
+     */
+    public function __call($name, $arguments)
+    {
+        return call_user_func_array([$this->lazy(), $name], $arguments);
     }
 
     /**
