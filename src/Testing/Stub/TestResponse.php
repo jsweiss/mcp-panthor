@@ -11,7 +11,7 @@ use Slim\Http\Headers;
 use Slim\Http\Response;
 use Slim\Http\Util;
 
-class SlimResponse extends Response
+class TestResponse extends Response
 {
     /**
      * Return a string representation of the complete http response.
