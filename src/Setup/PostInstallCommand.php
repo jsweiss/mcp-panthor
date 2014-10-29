@@ -58,7 +58,6 @@ README;
         $packageName = $this->getPackageName($io);
         $description = $this->getDescription($io);
 
-        // $this->copyConfiguration($io);
         $this->makeBinsWriteable($io);
 
         $this->prepareDists($io, $namespace);
@@ -84,34 +83,6 @@ README;
 
         $command = new static($root, $appRoot);
         call_user_func($command, $event);
-    }
-
-    /**
-     * Copy required configuration to the application.
-     *
-     * @param IOInterface $io
-     *
-     * @return null
-     */
-    private function copyConfiguration(IOInterface $io)
-    {
-        $copy = [
-            'bin' => 'bin',
-            'configuration' => 'configuration',
-            'public' => 'public',
-            'src-application' => 'src',
-            'testing' => 'testing',
-            'phpunit.xml.dist' => 'phpunit.xml.dist'
-        ];
-
-        $io->write('Copying application files');
-
-        foreach ($copy as $from => $to) {
-            $from = sprintf('%s/%s', $this->root, $from);
-            $to = sprintf('%s/%s', $this->appRoot, $to);
-            $command = sprintf('cp -R -v "%s" "%s"', $from, $to);
-            exec($command);
-        }
     }
 
     /**
@@ -229,7 +200,6 @@ README;
             'public/index.php',
             'src/Controller/TestController.php',
             'testing/bootstrap.php',
-            'testing/src/TestResponse.php',
             'testing/tests/Controller/TestControllerTest.php',
         ];
 
@@ -249,16 +219,15 @@ README;
      */
     private function prepareDistFile($filename, $namespace)
     {
-        $targetFilename = $this->appRoot. '/' . $filename;
-        $distFilename = $targetFilename . '.dist';
-
-        $contents = file_get_contents($distFilename);
-        $contents = str_replace('{{ application.namespace }}', $namespace, $contents);
-
-        file_put_contents($targetFilename, $contents);
+        $distFilename = $filename . '.dist';
 
         $perm = fileperms($distFilename);
-        chmod($targetFilename, $perm);
+        $contents = file_get_contents($distFilename);
+
+        $contents = str_replace('{{ application.namespace }}', $namespace, $contents);
+
+        file_put_contents($filename, $contents);
+        chmod($filename, $perm);
 
         unlink($distFilename);
     }
