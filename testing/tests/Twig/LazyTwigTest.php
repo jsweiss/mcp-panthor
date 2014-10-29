@@ -1,0 +1,81 @@
+<?php
+/**
+ * @copyright ©2014 Quicken Loans Inc. All rights reserved. Trade Secret,
+ *    Confidential and Proprietary. Any dissemination outside of Quicken Loans
+ *    is strictly prohibited.
+ */
+
+namespace QL\Panthor\Twig;
+
+use Mockery;
+use PHPUnit_Framework_TestCase;
+
+class LazyTwigTest extends PHPUnit_Framework_TestCase
+{
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function testMissingTemplateThrowsException()
+    {
+        $env = Mockery::mock('Twig_Environment');
+        $twig = new LazyTwig($env, new Context);
+
+        $twig->render();
+    }
+
+    public function testRenderIsPassedThroughToRealTwig()
+    {
+        $realTwig = Mockery::mock('Twig_Template', ['render' => null]);
+        $env = Mockery::mock('Twig_Environment');
+        $env
+            ->shouldReceive('loadTemplate')
+            ->with('path/to/template/file')
+            ->andReturn($realTwig)
+            ->once();
+
+        $twig = new LazyTwig($env, new Context, 'path/to/template/file');
+
+        $twig->render();
+    }
+
+    public function testTemplateSetterOverridesConstructorTemplate()
+    {
+        $realTwig = Mockery::mock('Twig_Template', ['render' => null]);
+        $env = Mockery::mock('Twig_Environment');
+        $env
+            ->shouldReceive('loadTemplate')
+            ->with('real/file')
+            ->andReturn($realTwig)
+            ->once();
+
+        $twig = new LazyTwig($env, new Context, 'path/to/template/file');
+        $twig->setTemplate('real/file');
+
+        $twig->render();
+    }
+
+    public function testContextIsMergedOnRenderIfProvided()
+    {
+        $realTwig = Mockery::mock('Twig_Template', ['render' => null]);
+        $env = Mockery::mock('Twig_Environment', ['loadTemplate' => $realTwig]);
+        $context = new Context;
+
+        $twig = new LazyTwig($env, $context, 'path/to/template/file');
+        $twig->render(['goobypls' => 'test']);
+
+        $this->assertSame('test', $context->get('goobypls'));
+    }
+
+    public function testNonRenderMethodIsPassedThrough()
+    {
+        $realTwig = Mockery::mock('Twig_Template');
+        $realTwig
+            ->shouldReceive('testing')
+            ->once();
+
+        $env = Mockery::mock('Twig_Environment', ['loadTemplate' => $realTwig]);
+
+        $twig = new LazyTwig($env, new Context, 'path/to/template/file');
+        $twig->testing();
+    }
+}
