@@ -5,7 +5,7 @@
  *    is strictly prohibited.
  */
 
-namespace QL\Panthor\Slim\Utility;
+namespace QL\Panthor\Utility;
 
 use Slim\Slim;
 use Slim\Http\Request;
