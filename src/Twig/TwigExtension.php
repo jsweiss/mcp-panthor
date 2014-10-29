@@ -60,7 +60,7 @@ class TwigExtension extends Twig_Extension
      */
     public function getName()
     {
-        return 'sso';
+        return 'panthor';
     }
 
     /**
