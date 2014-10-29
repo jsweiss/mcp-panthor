@@ -175,17 +175,22 @@ server {
     server_name  $SERVER_NAME;
     root         $APPLICATION_ROOT/public;
 
-    try_files $uri /index.php;
+    location / {
+        try_files       $uri        /index.php?$query_string;
+    }
 
-    # this will only pass index.php to the fastcgi process which is generally safer but
-    # assumes the whole site is run via Slim.
-    location /index.php {
-        fastcgi_connect_timeout 3s;
-        fastcgi_read_timeout 10s;
-        include fastcgi_params;
-        fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+    location ~* \.php$ {
+        try_files       $uri        /index.php?$query_string;
 
-        fastcgi_pass 127.0.0.1:9000;    # assumes you are running php-fpm locally on port 9000
+        fastcgi_connect_timeout     3s;
+        fastcgi_read_timeout        10s;
+
+        include         /etc/nginx/fastcgi_params;
+
+        fastcgi_param   SCRIPT_FILENAME     $document_root$fastcgi_script_name;
+
+        fastcgi_pass    127.0.0.1:9000;    # assumes you are running php-fpm locally on port 9000
+        fastcgi_index   index.php
     }
 }
 ```
