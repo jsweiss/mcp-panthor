@@ -36,25 +36,25 @@ services:
     # application configuration
     ############################################################################
 
-    slim: @panthor.slim
-    slim.router: @panthor.slim.router
-    slim.configurator: @panthor.slim.configurator
-    slim.hook.routes: @panthor.slim.hook.routes
+    slim:               {parent: panthor.slim}
+    slim.router:        {parent: panthor.slim.router}
+    slim.configurator:  {parent: panthor.slim.configurator}
+    slim.hook.routes:   {parent: panthor.slim.hook.routes}
 
-    url: @panthor.url
-    clock: @panthor.clock
-    json: @panthor.json
+    url:                {parent: panthor.url}
+    clock:              {parent: panthor.clock}
+    json:               {parent: panthor.json}
 
-    twig.cache.dir: @panthor.twig.cache.dir
-    twig.template.dir: @panthor.twig.template.dir
+    twig.cache.dir:     {parent: panthor.twig.cache.dir}
+    twig.template.dir:  {parent: panthor.twig.template.dir}
 
-    twig.template: @panthor.twig.template
-    twig.context: @panthor.twig.context
+    twig.template:      {parent: panthor.twig.template}
+    twig.context:       {parent: panthor.twig.context}
 
-    twig.loader: @panthor.twig.loader
-    twig.environment: @panthor.twig.environment
+    twig.loader:        {parent: panthor.twig.loader}
+    twig.environment:   {parent: panthor.twig.environment}
 
-    middleware.requestBody: @panthor.middleware.requestBody
+    middleware.requestBody: {parent: panthor.middleware.requestBody}
 
     ############################################################################
     # Slim
