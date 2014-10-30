@@ -41,18 +41,19 @@ class Di
     }
 
     /**
-     * @param  ContainerBuilder $container  The built container, ready for caching.
-     * @param  string           $class      Fully qualified class name of the cached container.
+     * @param ContainerBuilder $container  The built container, ready for caching.
+     * @param string           $class      Fully qualified class name of the cached container.
+     * @param array            $config     Optionally pass additional configuration to the Dumper
      *
      * @return string The cached container file contents.
      */
-    public static function dumpDi(ContainerBuilder $container, $class)
+    public static function dumpDi(ContainerBuilder $container, $class, array $config = [])
     {
         $exploded = explode('\\', $class);
-        $config = [
+        $config = array_merge($config, [
             'class' => array_pop($exploded),
             'namespace' => implode('\\', $exploded)
-        ];
+        ]);
 
         return (new PhpDumper($container))->dump($config);
     }
