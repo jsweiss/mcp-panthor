@@ -32,6 +32,9 @@ services:
     slim.parameters:    {synthetic: true}
     slim.halt:          {synthetic: true}
 
+    # Application specific synthetic services
+    request.body:       {synthetic: true}
+
     ############################################################################
     # Public exported services
     #
