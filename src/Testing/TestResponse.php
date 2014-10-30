@@ -5,7 +5,7 @@
  *    is strictly prohibited.
  */
 
-namespace QL\Panthor\Testing\Stub;
+namespace QL\Panthor\Testing;
 
 use Slim\Http\Headers;
 use Slim\Http\Response;

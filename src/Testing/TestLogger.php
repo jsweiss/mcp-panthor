@@ -14,7 +14,7 @@ use Psr\Log\AbstractLogger;
  *
  * Usage:
  *
- * $logger = new MemoryLogger;
+ * $logger = new TestLogger;
  *
  * $logger->info('message');
  * $logger->emergency('message 2', ['data' => 'testing']);
@@ -34,7 +34,7 @@ use Psr\Log\AbstractLogger;
  * ]
  *
  */
-class Logger extends AbstractLogger
+class TestLogger extends AbstractLogger
 {
     /**
      * @type array
