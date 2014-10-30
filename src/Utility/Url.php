@@ -48,7 +48,6 @@ class Url
     {
         if (!$route = $this->slim->router()->getCurrentRoute()) {
             return null;
-
         }
 
         return $route->getName();
@@ -65,7 +64,7 @@ class Url
      */
     public function urlFor($route, array $params = [], array $query = [])
     {
-        $urlPath = $this->$this->slim->router()->urlFor($route, $params);
+        $urlPath = $this->slim->router()->urlFor($route, $params);
         return $this->appendQueryString($urlPath, $query);
     }
 
