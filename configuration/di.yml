@@ -2,6 +2,8 @@ parameters:
     # Parameters overridden by application configuration
     routes: []
     slim.hooks:
+        slim.before:
+            - 'slim.hook.apacheAuthorization'
         slim.before.router:
             - 'slim.hook.routes'
 
