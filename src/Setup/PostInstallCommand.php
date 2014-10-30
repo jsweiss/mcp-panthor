@@ -194,6 +194,7 @@ README;
     private function prepareDists(IOInterface $io, $namespace)
     {
         $files = [
+            'bin/compile-templates.dist',
             'bin/dump-di',
             'configuration/di.yml',
             'configuration/bootstrap.php',
@@ -220,6 +221,9 @@ README;
     private function prepareDistFile($filename, $namespace)
     {
         $distFilename = $filename . '.dist';
+        if (!file_exists($distFilename)) {
+            return;
+        }
 
         $perm = fileperms($distFilename);
         $contents = file_get_contents($distFilename);
