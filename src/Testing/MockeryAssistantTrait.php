@@ -5,12 +5,14 @@
  *    is strictly prohibited.
  */
 
-namespace QL\SSO\Login\Testing;
+namespace QL\Panthor\Testing;
 
 use Mockery;
 
 trait MockeryAssistantTrait
 {
+    private $spies;
+
     /**
      * Spy on an expectation and record the output for further tests and assertions.
      *
@@ -54,5 +56,34 @@ trait MockeryAssistantTrait
         $with = call_user_func_array([$should, 'with'], $parameters);
 
         return $with;
+    }
+
+    /**
+     * Build a spy and store it on the class
+     *
+     * @return Spy
+     */
+    public function buildSpy($name)
+    {
+        if (!is_array($this->spies)) {
+            $this->spies = [];
+        }
+
+        $spy = new Spy;
+        $this->spies[$name] = $spy;
+
+        return $spy;
+    }
+
+    /**
+     * Get a spy previously built.
+     *
+     * @return Spy|null
+     */
+    public function getSpy($name)
+    {
+        if (isset($this->spies[$name])) {
+            return $this->spies[$name];
+        }
     }
 }
