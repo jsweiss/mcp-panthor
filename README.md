@@ -28,6 +28,19 @@ When first setting up an application, we recommend using the composer `create-pr
 - [Web Server Configuration](docs/SERVER.md)
   > Example setups for nginx and apache.
 
+### Optional Dependencies
+
+This library contains many convenience utilities and classes for your application. Some of this functionality requires other libraries, but because they are optional, they are not strict requirements.
+
+Please take note of the following packages and include them in your composer `require` if you use the associated Panthor functionality.
+
+Library         | Required by
+--------------- | -----------
+psr/log         | `Testing\Logger`
+ql/mcp-core     | `Twig\TwigExtension`
+ql/mcp-crypto   | `Http\EncryptedCookies`
+twig/twig       | `Twig\`
+
 ### Development installation
 
 The initial application may be installed with `bin/install && bin/normalize-configuration`.

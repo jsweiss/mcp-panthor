@@ -29,6 +29,10 @@
         "phpunit/phpunit": "4.*",
         "phpunit/php-invoker": "*",
 
+        "psr/log": "*",
+
+        "ql/mcp-crypto": "*",
+
         "ql/mcp-core": "*",
         "twig/twig": "*"
     }

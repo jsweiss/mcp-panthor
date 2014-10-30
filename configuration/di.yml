@@ -14,6 +14,9 @@ parameters:
     twig.template.dir: 'templates'
     twig.cache.dir: '.twig'
 
+    # encryption
+    encryption.secret: ''
+
     # Internal panthor parameters, do not override unless you know what you are doing.
     panthor.internal.timezone: 'UTC'
 
@@ -36,25 +39,33 @@ services:
     # application configuration
     ############################################################################
 
-    slim:               {parent: panthor.slim}
-    slim.router:        {parent: panthor.slim.router}
-    slim.configurator:  {parent: panthor.slim.configurator}
-    slim.hook.routes:   {parent: panthor.slim.hook.routes}
+    slim:                           {parent: panthor.slim}
+    slim.configurator:              {parent: panthor.slim.configurator}
 
-    url:                {parent: panthor.url}
-    clock:              {parent: panthor.clock}
-    json:               {parent: panthor.json}
+    slim.router:                    {parent: panthor.slim.router}
+    # slim.response:                  {parent: panthor.slim.response}
+    slim.cookies:                   {parent: panthor.slim.cookies}
 
-    twig.cache.dir:     {parent: panthor.twig.cache.dir}
-    twig.template.dir:  {parent: panthor.twig.template.dir}
+    slim.hook.routes:               {parent: panthor.slim.hook.routes}
+    slim.hook.apacheAuthorization:  {parent: panthor.slim.hook.apacheAuthorization}
 
-    twig.template:      {parent: panthor.twig.template}
-    twig.context:       {parent: panthor.twig.context}
+    url:                            {parent: panthor.url}
+    clock:                          {parent: panthor.clock}
+    json:                           {parent: panthor.json}
 
-    twig.loader:        {parent: panthor.twig.loader}
-    twig.environment:   {parent: panthor.twig.environment}
+    encryption:                     {parent: panthor.encryption}
+    encryption.cookie:              {parent: panthor.encryption}
 
-    middleware.requestBody: {parent: panthor.middleware.requestBody}
+    twig.cache.dir:                 {parent: panthor.twig.cache.dir}
+    twig.template.dir:              {parent: panthor.twig.template.dir}
+
+    twig.template:                  {parent: panthor.twig.template}
+    twig.context:                   {parent: panthor.twig.context}
+
+    twig.loader:                    {parent: panthor.twig.loader}
+    twig.environment:               {parent: panthor.twig.environment}
+
+    middleware.requestBody:         {parent: panthor.middleware.requestBody}
 
     ############################################################################
     # Slim
@@ -70,6 +81,8 @@ services:
     panthor.slim:
         class: 'Slim\Slim'
         configurator: [@slim.configurator, 'configure']
+        properties:
+            response: @panthor.slim.response
 
     panthor.slim.router:
         class: 'Slim\Router'
@@ -81,8 +94,20 @@ services:
         arguments: [@service_container, %slim.hooks%]
 
     panthor.slim.hook.routes:
-        class: 'QL\Panthor\Bootstrap\RouteLoaderHook'
+        class: 'QL\Panthor\Slim\RouteLoaderHook'
         arguments: [@service_container, %routes%]
+
+    panthor.slim.hook.apacheAuthorization:
+        class: 'QL\Panthor\Slim\ApacheAuthorizationHeaderHook'
+
+    panthor.slim.cookies:
+        class: 'QL\Panthor\Http\EncryptedCookies'
+        arguments: [@slim, @encryption.cookie]
+
+    panthor.slim.response:
+        class: 'Slim\Http\Response'
+        properties:
+            cookies: @slim.cookies
 
     ############################################################################
     # Panthor Middleware
@@ -118,6 +143,10 @@ services:
 
     panthor.json:
         class: 'QL\Panthor\Utility\Json'
+
+    panthor.encryption:
+        class: 'MCP\Crypto\AES'
+        arguments: [%encryption.secret%]
 
     ############################################################################
     # Twig
