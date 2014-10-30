@@ -31,7 +31,7 @@ class RequestBodyMiddlewareTest extends PHPUnit_Framework_TestCase
         $mw();
     }
 
-    public function testEmptyJson()
+    public function testEmptyPostMeansPartyTime()
     {
         $this->request
             ->shouldReceive([
