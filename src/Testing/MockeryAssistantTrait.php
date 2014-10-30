@@ -34,12 +34,16 @@ trait MockeryAssistantTrait
      *
      * @param $mock
      * @param string $method Method to spy on
-     * @param array $parameters
+     * @param array|Spy $parameters
      *
      * @return $mock
      */
-    public function spy($mock, $method, array $parameters)
+    public function spy($mock, $method, $parameters)
     {
+        if (!is_array($parameters)) {
+            $parameters = [$parameters];
+        }
+
         $should = $mock->shouldReceive($method);
 
         array_walk($parameters, function(&$v) {
@@ -59,7 +63,17 @@ trait MockeryAssistantTrait
     }
 
     /**
-     * Build a spy and store it on the class
+     * Build a spy and store it on the class.
+     *
+     * This allows slightly easier access to the spy functionality.
+     *
+     * Usage:
+     * $mock = Mockery::mock('ClassName');
+     * $this->spy($mock, 'methodName', [$this->buildSpy('spy_name')]);
+     *
+     * // Run code
+     *
+     * $captured = call_user_func($this->getSpy('spy_name'));
      *
      * @return Spy
      */
