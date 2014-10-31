@@ -22,11 +22,6 @@ class Json
     private $encodingOptions;
 
     /**
-     * @type bool
-     */
-    private $failOnScalar;
-
-    /**
      * @param callable|string $jsonMessageFunction
      */
     public function __construct($jsonMessageFunction = 'json_last_error_msg')
@@ -34,7 +29,6 @@ class Json
         $this->jsonMessageFunction = $jsonMessageFunction;
 
         $this->encodingOptions = JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT;
-        $this->failOnScalar = true;
     }
 
     /**
@@ -119,17 +113,5 @@ class Json
     public function setEncodingOptions($encodingOptions)
     {
         $this->encodingOptions = (int) $encodingOptions;
-    }
-
-    /**
-     * Determine whether to fail when decoding JSON and getting a non-array result.
-     *
-     * @param bool $failOnScalar
-     *
-     * @return null
-     */
-    public function setFailOnScalar($failOnScalar)
-    {
-        $this->failOnScalar = (bool) $failOnScalar;
     }
 }
