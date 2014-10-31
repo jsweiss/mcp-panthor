@@ -30,6 +30,13 @@ services:
     # Application specific synthetic services
     request.body:       {synthetic: true}
 
+    # remove in 2.0
+    slim.environment:       {synthetic: true}
+    slim.request:           {synthetic: true}
+    slim.response:          {synthetic: true}
+    slim.parameters:        {synthetic: true} # slim.parameters change to slim.route.parameters in 2.0
+    slim.halt:              {synthetic: true}
+
     ############################################################################
     # Public exported services
     #
@@ -39,19 +46,18 @@ services:
 
     slim:                           {parent: panthor.slim}
     slim.configurator:              {parent: panthor.slim.configurator}
-    slim.halt:                      {parent: panthor.slim.halt}
 
-    slim.environment:               {parent: panthor.slim.environment}
-    slim.request:                   {parent: panthor.slim.request}
-    slim.response:                  {parent: panthor.slim.response}
+    # add in 2.0
+        # slim.halt:                      {parent: panthor.slim.halt}
+
+        # slim.environment:               {parent: panthor.slim.environment}
+        # slim.request:                   {parent: panthor.slim.request}
+        # slim.response:                  {parent: panthor.slim.response}
     slim.cookies:                   {parent: panthor.slim.cookies}
 
     slim.router:                    {parent: panthor.slim.router}
     slim.route:                     {parent: panthor.slim.route}
     slim.route.parameters:          {parent: panthor.slim.route.parameters}
-
-    # remove in 2.0
-    slim.parameters:                {parent: panthor.slim.route.parameters}
 
     slim.hook.routes:               {parent: panthor.slim.hook.routes}
     slim.hook.apacheAuthorization:  {parent: panthor.slim.hook.apacheAuthorization}
