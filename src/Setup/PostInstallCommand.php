@@ -194,7 +194,7 @@ README;
     private function prepareDists(IOInterface $io, $namespace)
     {
         $files = [
-            'bin/compile-templates.dist',
+            'bin/compile-templates',
             'bin/dump-di',
             'configuration/di.yml',
             'configuration/bootstrap.php',
@@ -206,22 +206,24 @@ README;
 
         foreach ($files as $file) {
             $io->write(sprintf('Preparing %s', $file));
-            $this->prepareDistFile($file, $namespace);
+            $this->prepareDistFile($io, $file, $namespace);
         }
     }
 
     /**
      * Prepare dist file.
      *
+     * @param IOInterface $io
      * @param string $filename
      * @param string $namespace
      *
      * @return null
      */
-    private function prepareDistFile($filename, $namespace)
+    private function prepareDistFile(IOInterface $io, $filename, $namespace)
     {
         $distFilename = $filename . '.dist';
         if (!file_exists($distFilename)) {
+            $io->write(sprintf('...Skipping - %s not found.', $distFilename));
             return;
         }
 
