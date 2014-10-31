@@ -27,13 +27,6 @@ services:
     # Note: This path has NO TRAILING SLASH
     root:               {synthetic: true}
 
-    # Injected at runtime by the RouteLoader
-    slim.environment:   {synthetic: true}
-    slim.request:       {synthetic: true}
-    slim.response:      {synthetic: true}
-    slim.parameters:    {synthetic: true}
-    slim.halt:          {synthetic: true}
-
     # Application specific synthetic services
     request.body:       {synthetic: true}
 
@@ -46,10 +39,19 @@ services:
 
     slim:                           {parent: panthor.slim}
     slim.configurator:              {parent: panthor.slim.configurator}
+    slim.halt:                      {parent: panthor.slim.halt}
+
+    slim.environment:               {parent: panthor.slim.environment}
+    slim.request:                   {parent: panthor.slim.request}
+    slim.response:                  {parent: panthor.slim.response}
+    slim.cookies:                   {parent: panthor.slim.cookies}
 
     slim.router:                    {parent: panthor.slim.router}
-    # slim.response:                  {parent: panthor.slim.response}
-    slim.cookies:                   {parent: panthor.slim.cookies}
+    slim.route:                     {parent: panthor.slim.route}
+    slim.route.parameters:          {parent: panthor.slim.route.parameters}
+
+    # remove in 2.0
+    slim.parameters:                {parent: panthor.slim.route.parameters}
 
     slim.hook.routes:               {parent: panthor.slim.hook.routes}
     slim.hook.apacheAuthorization:  {parent: panthor.slim.hook.apacheAuthorization}
@@ -92,11 +94,6 @@ services:
         properties:
             response: @panthor.slim.response
 
-    panthor.slim.router:
-        class: 'Slim\Router'
-        factory_service: 'slim'
-        factory_method: 'router'
-
     panthor.slim.configurator:
         class: 'QL\Panthor\Bootstrap\SlimConfigurator'
         arguments: [@service_container, %slim.hooks%]
@@ -108,14 +105,45 @@ services:
     panthor.slim.hook.apacheAuthorization:
         class: 'QL\Panthor\Slim\ApacheAuthorizationHeaderHook'
 
-    panthor.slim.cookies:
-        class: 'QL\Panthor\Http\EncryptedCookies'
-        arguments: [@slim, @encryption.cookie]
+    # slim accessors
+
+    panthor.slim.environment:
+        class: 'Slim\Environment'
+        factory_service: 'slim'
+        factory_method: 'environment'
+
+    panthor.slim.request:
+        class: 'Slim\Http\Request'
+        factory_service: 'slim'
+        factory_method: 'request'
 
     panthor.slim.response:
         class: 'Slim\Http\Response'
         properties:
             cookies: @slim.cookies
+
+    panthor.slim.cookies:
+        class: 'QL\Panthor\Http\EncryptedCookies'
+        arguments: [@slim, @encryption.cookie]
+
+    panthor.slim.router:
+        class: 'Slim\Router'
+        factory_service: 'slim'
+        factory_method: 'router'
+
+    panthor.slim.route:
+        class: 'Slim\Route'
+        factory_service: 'slim.router'
+        factory_method: 'getCurrentRoute'
+
+    panthor.slim.route.parameters:
+        class: 'na'
+        factory_service: 'slim.route'
+        factory_method: 'getParams'
+
+    panthor.slim.halt:
+        class: 'QL\Panthor\Slim\Halt'
+        arguments: [@slim]
 
     ############################################################################
     # Panthor Middleware
