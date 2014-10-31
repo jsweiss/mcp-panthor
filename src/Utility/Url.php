@@ -64,6 +64,10 @@ class Url
      */
     public function urlFor($route, array $params = [], array $query = [])
     {
+        if (!$route) {
+            return '';
+        }
+
         $urlPath = $this->slim->router()->urlFor($route, $params);
         return $this->appendQueryString($urlPath, $query);
     }
