@@ -7,16 +7,17 @@
 
 namespace QL\Panthor\Utility;
 
-use Slim\Slim;
 use Slim\Http\Request;
+use Slim\Http\Response;
 use Slim\Exception\Stop;
+use Slim\Router;
 
 class Url
 {
     /**
-     * @type Slim
+     * @type Router
      */
-    private $slim;
+    private $router;
 
     /**
      * @type Request
@@ -24,19 +25,27 @@ class Url
     private $request;
 
     /**
+     * @type Response
+     */
+    private $response;
+
+    /**
      * @type callable
      */
     private $halt;
 
     /**
-     * @param Slim $slim
+     * @param Router $router
      * @param Request $request
+     * @param Response $response
      * @param callable $halt
      */
-    public function __construct(Slim $slim, Request $request, callable $halt)
+    public function __construct(Router $router, Request $request, Response $response, callable $halt)
     {
-        $this->slim = $slim;
+        $this->router = $router;
         $this->request = $request;
+        $this->response = $response;
+        $this->halt = $halt;
     }
 
     /**
@@ -46,7 +55,7 @@ class Url
      */
     public function currentRoute()
     {
-        if (!$route = $this->slim->router()->getCurrentRoute()) {
+        if (!$route = $this->router->getCurrentRoute()) {
             return null;
         }
 
@@ -68,7 +77,7 @@ class Url
             return '';
         }
 
-        $urlPath = $this->slim->router()->urlFor($route, $params);
+        $urlPath = $this->router->urlFor($route, $params);
         return $this->appendQueryString($urlPath, $query);
     }
 
