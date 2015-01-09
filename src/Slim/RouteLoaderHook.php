@@ -15,18 +15,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * Convert a flat array into slim routes and attaches them to the slim application.
  *
  * This hook should be attached to the "slim.before.router" event.
- *
- * Note:
- * This hook will inject several framework services into the container. They MUST
- * be marked as synthetic in the container configuration.
- *
- * - slim.environment   : Slim\Environment
- * - slim.request       : Slim\Http\Response
- * - slim.response      : Slim\Http\Response
- * - slim.parameters    : Named array of route parameters
- * - slim.halt          : Callable that aborts execution of the application.
- *     Requires an http status code. Optionally the response body may be
- *     provided as the second parameter.
  */
 class RouteLoaderHook
 {
@@ -77,11 +65,6 @@ class RouteLoaderHook
             $url = $details['route'];
             $stack = $this->convertStackToCallables($details['stack']);
 
-
-            // Prepend the runtime service injector to the stack
-            // This will ensure all middleware and the controller have access to slim services
-            array_unshift($stack, $this->runtimeServicesInjector($slim));
-
             // Prepend the url to the stack
             array_unshift($stack, $url);
 
@@ -98,28 +81,6 @@ class RouteLoaderHook
                 $route->conditions($conditions);
             }
         }
-    }
-
-    /**
-     * Get a callback that will inject Slim services into the symfony service container.
-     *
-     * This method may be overridden by applications to inject custom services.
-     *
-     * @param Slim $slim
-     *
-     * @return Closure
-     */
-    protected function runtimeServicesInjector(Slim $slim)
-    {
-        return function() use ($slim) {
-            $this->container->set('slim.environment', $slim->environment());
-
-            $this->container->set('slim.request', $slim->request());
-            $this->container->set('slim.response', $slim->response());
-
-            $this->container->set('slim.parameters', $slim->router()->getCurrentRoute()->getParams());
-            $this->container->set('slim.halt', [$slim, 'halt']);
-        };
     }
 
     /**

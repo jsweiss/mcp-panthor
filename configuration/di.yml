@@ -48,11 +48,12 @@ services:
     slim.configurator:              {parent: panthor.slim.configurator}
 
     # add in 2.0
-        # slim.halt:                      {parent: panthor.slim.halt}
+    slim.halt:                      {parent: panthor.slim.halt}
+    slim.not.found:                 {parent: panthor.slim.not.found}
 
-        # slim.environment:               {parent: panthor.slim.environment}
-        # slim.request:                   {parent: panthor.slim.request}
-        # slim.response:                  {parent: panthor.slim.response}
+    slim.environment:               {parent: panthor.slim.environment}
+    slim.request:                   {parent: panthor.slim.request}
+    slim.response:                  {parent: panthor.slim.response}
     slim.cookies:                   {parent: panthor.slim.cookies}
 
     slim.router:                    {parent: panthor.slim.router}
@@ -148,6 +149,10 @@ services:
 
     panthor.slim.halt:
         class: 'QL\Panthor\Slim\Halt'
+        arguments: [@slim]
+
+    panthor.slim.not.found:
+        class: 'QL\Panthor\Slim\NotFound'
         arguments: [@slim]
 
     ############################################################################
