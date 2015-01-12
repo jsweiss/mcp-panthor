@@ -30,13 +30,6 @@ services:
     # Application specific synthetic services
     request.body:       {synthetic: true}
 
-    # remove in 2.0
-    slim.environment:       {synthetic: true}
-    slim.request:           {synthetic: true}
-    slim.response:          {synthetic: true}
-    slim.parameters:        {synthetic: true} # slim.parameters change to slim.route.parameters in 2.0
-    slim.halt:              {synthetic: true}
-
     ############################################################################
     # Public exported services
     #
