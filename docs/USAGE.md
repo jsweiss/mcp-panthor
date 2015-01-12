@@ -12,17 +12,20 @@ controller or middleware when they are called.
 The interfaces `QL\Panthor\ControllerInterface` and `QL\Panthor\MiddlewareInterface` are provided for convenience that
 middleware and controllers may implement, but no type checks are performed.
 
-The Bootstrap and RouteLoader will populate several **runtime services** that are available to be used as dependencies
-for any service.
+It is recommended applications import the panthor `di.yml` configuration file in their application `config.yml` file.
 
-Service            | Description
------------------- | -----------
-root               | The application root. NO TRAILING SLASH.
-slim.environment   | Slim\Environment
-slim.request       | Slim\Http\Request
-slim.response      | Slim\Http\Response
-slim.parameters    | An associative array of route parameters.
-slim.halt          | A callable used to abort application execution.
+This configuration provides many boilerplates services.
+
+Service                  | Description
+------------------------ | -----------
+root                     | The application root. NO TRAILING SLASH.
+slim.environment         | Slim\Environment
+slim.request             | Slim\Http\Request
+slim.response            | Slim\Http\Response
+slim.route               | Slim\Route - The matched Slim Route
+slim.route.parameters    | An associative array of route parameters.
+slim.halt                | An invokeable class used to abort application execution.
+slim.not.found           | An invokeable class used to trigger Slim's Not Found functionality
 
 About `slim.halt`:
 
@@ -34,5 +37,14 @@ will be empty. Generally this should be avoided in client-facing applications.
 
 Example usage:
 ```php
-call_user_func($halt, 500, 'An unknown error occured');
+call_user_func($halt, 500, 'Internal Server Error');
+```
+
+About `slim.not.found`:
+
+When invoked, this class will trigger Slim **Not Found**. It has the same behavior as `slim.halt` in that it halts further execution of the controller stack.
+
+Example usage:
+```php
+call_user_func($notFound);
 ```
