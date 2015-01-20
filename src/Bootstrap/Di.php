@@ -27,14 +27,20 @@ class Di
 
     /**
      * @param string $root The application root directory.
+     * @param callable $containerModifier Modify the container with a callable before it is compiled.
      *
      * @return ContainerBuilder
      */
-    public static function buildDi($root)
+    public static function buildDi($root, callable $containerModifier = null)
     {
         $container = new ContainerBuilder;
         $builder = new YamlFileLoader($container, new FileLocator($root));
         $builder->load(static::PRIMARY_CONFIGURATION_FILE);
+
+        if (is_callable($containerModifier)) {
+            $containerModifier($container);
+        }
+
         $container->compile();
 
         return $container;
@@ -65,10 +71,11 @@ class Di
     /**
      * @param  string $root  The application root directory.
      * @param  string $class Fully qualified class name of the cached container.
+     * @param  callable $containerModifier Modify the container with a callable before it is compiled.
      *
      * @return ContainerInterface A service container. This may or may not be a cached container.
      */
-    public static function getDi($root, $class)
+    public static function getDi($root, $class, callable $containerModifier = null)
     {
         $root = rtrim($root, '/');
 
@@ -77,10 +84,10 @@ class Di
 
             // Force a fresh container in debug mode
             if ($container->hasParameter('debug') && $container->getParameter('debug')) {
-                $container = static::buildDi($root);
+                $container = static::buildDi($root, $containerModifier);
             }
         } else {
-            $container = static::buildDi($root);
+            $container = static::buildDi($root, $containerModifier);
         }
 
         // Set the synthetic root service. This must not ever be cached.
