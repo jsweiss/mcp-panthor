@@ -41,6 +41,10 @@ class BetterCachingFilesystem extends Twig_Loader_Filesystem
         $fullPath = $this->findTemplate($name);
 
         foreach ($this->getPaths() as $path) {
+
+            // resolve relative path
+            $path = realpath($path);
+
             if (strpos($fullPath, $path) === 0) {
                 $fullPath = substr($fullPath, strlen($path) + 1);
                 break;
