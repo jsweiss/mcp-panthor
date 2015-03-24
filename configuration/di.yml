@@ -129,7 +129,7 @@ services:
 
     panthor.slim.route:
         class: 'Slim\Route'
-        factory: [@slim, 'getCurrentRoute']
+        factory: [@slim.router, 'getCurrentRoute']
 
     panthor.slim.route.parameters:
         class: 'na'
