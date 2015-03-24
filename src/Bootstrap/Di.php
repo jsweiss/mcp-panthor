@@ -26,6 +26,22 @@ class Di
     const PRIMARY_CONFIGURATION_FILE = 'configuration/config.yml';
 
     /**
+     * The parameter to check whether the container should be cached.
+     *
+     * Using a prefix of "@" will check a service instead of parameter.
+     *
+     * @type string
+     */
+    const KEY_PREVENT_CACHING = 'debug';
+
+    /**
+     * Service key for root path
+     *
+     * @type string
+     */
+    const KEY_ROOT_PATH = 'root';
+
+    /**
      * @param string $root The application root directory.
      * @param callable $containerModifier Modify the container with a callable before it is compiled.
      *
@@ -83,16 +99,37 @@ class Di
             $container = new $class;
 
             // Force a fresh container in debug mode
-            if ($container->hasParameter('debug') && $container->getParameter('debug')) {
+            if (static::shouldRefreshContainer($container)) {
                 $container = static::buildDi($root, $containerModifier);
             }
+
         } else {
             $container = static::buildDi($root, $containerModifier);
         }
 
         // Set the synthetic root service. This must not ever be cached.
-        $container->set('root', $root);
+        $container->set(static::KEY_ROOT_PATH, $root);
 
         return $container;
+    }
+
+    /**
+     * @param ContainerInterface $container
+     *
+     * @return bool
+     */
+    protected static function shouldRefreshContainer(ContainerInterface $container)
+    {
+        $lookup = static::KEY_PREVENT_CACHING;
+        $isService = substr($lookup, 0, 1) === '@';
+        if ($isService) {
+            $lookup = substr($lookup, 1);
+        }
+
+        if ($isService) {
+            return $container->has($lookup) && $container->get($lookup);
+        }
+
+        return $container->hasParameter($lookup) && $container->getParameter($lookup);
     }
 }
