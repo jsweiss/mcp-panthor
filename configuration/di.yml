@@ -108,13 +108,11 @@ services:
 
     panthor.slim.environment:
         class: 'Slim\Environment'
-        factory_service: 'slim'
-        factory_method: 'environment'
+        factory: [@slim, 'environment']
 
     panthor.slim.request:
         class: 'Slim\Http\Request'
-        factory_service: 'slim'
-        factory_method: 'request'
+        factory: [@slim, 'request']
 
     panthor.slim.response:
         class: 'Slim\Http\Response'
@@ -127,18 +125,15 @@ services:
 
     panthor.slim.router:
         class: 'Slim\Router'
-        factory_service: 'slim'
-        factory_method: 'router'
+        factory: [@slim, 'router']
 
     panthor.slim.route:
         class: 'Slim\Route'
-        factory_service: 'slim.router'
-        factory_method: 'getCurrentRoute'
+        factory: [@slim, 'getCurrentRoute']
 
     panthor.slim.route.parameters:
         class: 'na'
-        factory_service: 'slim.route'
-        factory_method: 'getParams'
+        factory: [@slim.route, 'getParams']
 
     panthor.slim.halt:
         class: 'QL\Panthor\Slim\Halt'
@@ -222,14 +217,12 @@ services:
 
     panthor.twig.template.dir:
         class: 'Factory_generated_scalar'
-        factory_class: 'QL\Panthor\Utility\Stringify'
-        factory_method: 'template'
+        factory: ['QL\Panthor\Utility\Stringify', 'template']
         arguments: ['%%s/%%s', [@root, %twig.template.dir%]]
 
     panthor.twig.cache.dir:
         class: 'Factory_generated_scalar'
-        factory_class: 'QL\Panthor\Utility\Stringify'
-        factory_method: 'template'
+        factory: ['QL\Panthor\Utility\Stringify', 'template']
         arguments: ['%%s/%%s', [@root, %twig.cache.dir%]]
 
     panthor.twig.loader:
