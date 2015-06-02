@@ -39,7 +39,7 @@ class RouteLoaderHook
      * @param ContainerInterface $container
      * @param array $routes
      */
-    public function __construct(ContainerInterface $container, array $routes)
+    public function __construct(ContainerInterface $container, array $routes = [])
     {
         $this->container = $container;
         $this->routes = $routes;
@@ -47,6 +47,16 @@ class RouteLoaderHook
         // These are the only methods supported by Slim
         $validMethods = ['DELETE', 'GET', 'HEAD', 'OPTIONS', 'PATCH', 'POST', 'PUT'];
         $this->methods = array_fill_keys($validMethods, true);
+    }
+
+    /**
+     * @param array $routes
+     *
+     * @return void
+     */
+    public function addRoutes(array $routes)
+    {
+        $this->routes = array_merge($this->routes, $routes);
     }
 
     /**
