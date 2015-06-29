@@ -8,8 +8,7 @@
 namespace QL\Panthor\Http;
 
 use ArrayIterator;
-use JsonSerializable;
-use MCP\Crypto\AES;
+use QL\Panthor\Utility\Json;
 use Slim\Http\Cookies;
 use Slim\Slim;
 
@@ -24,23 +23,42 @@ use Slim\Slim;
 class EncryptedCookies extends Cookies
 {
     /**
-     * @type AES
-     */
-    private $encryption;
-
-    /**
      * @type Slim
      */
     private $slim;
 
     /**
-     * @param Slim $slim
-     * @param AES $encryption
+     * @type Json
      */
-    public function __construct(Slim $slim, AES $encryption)
-    {
+    private $json;
+
+    /**
+     * @type CookieEncryptionInterface
+     */
+    private $encryption;
+
+    /**
+     * @type string[]
+     */
+    private $unencryptedCookies;
+
+    /**
+     * @param Slim $slim
+     * @param Json $json
+     * @param CookieEncryptionInterface $encryption
+     * @param string[] $unencryptedCookies
+     */
+    public function __construct(
+        Slim $slim,
+        Json $json,
+        CookieEncryptionInterface $encryption,
+        array $unencryptedCookies = []
+    ) {
         $this->slim = $slim;
+        $this->json = $json;
         $this->encryption = $encryption;
+
+        $this->unencryptedCookies = $unencryptedCookies;
     }
 
     /**
@@ -54,16 +72,14 @@ class EncryptedCookies extends Cookies
 
         $value = array_key_exists('value', $cookie) ? $cookie['value'] : null;
 
-        // auto stringify
-        if (is_object($value) && method_exists($value, '__toString')) {
-            $value = (string) $value;
+        if ($value) {
+            $value = $this->json->encode($value);
 
-        // auto jsonify
-        } elseif (is_array($value) || $value instanceof JsonSerializable) {
-            $value = json_encode($value);
+            if (!in_array($key, $this->unencryptedCookies)) {
+                $value = $this->encryption->encrypt($value);
+            }
         }
 
-        $value = ($value) ? $this->encryption->encrypt($value) : null;
         $cookie['value'] = $value;
 
         return $cookie;
@@ -102,8 +118,24 @@ class EncryptedCookies extends Cookies
     {
         if ($value = $this->slim->getCookie($name)) {
             $decrypted = $this->encryption->decrypt($value);
+
+            // Successful decryption
             if (is_string($decrypted)) {
-                return $decrypted;
+                $decoded = $this->json->decode($decrypted);
+                if ($decoded !== null) {
+                    return $decoded;
+                } else {
+                    // If json decode fails, just return the raw decrypted string. This is to maintain BC.
+                    // @todo remove in 3.0
+                    return $decrypted;
+                }
+
+            // Allow straight value through if fails decryption and allowed to be unencrypted.
+            } elseif (in_array($name, $this->unencryptedCookies)) {
+                $decoded = $this->json->decode($value);
+                if ($decoded !== null) {
+                    return $decoded;
+                }
             }
 
             $this->deleteCookie($name);

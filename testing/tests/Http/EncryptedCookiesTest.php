@@ -10,16 +10,19 @@ namespace QL\Panthor\Http;
 use Mockery;
 use PHPUnit_Framework_TestCase;
 use QL\Panthor\Testing\Stub\StringableStub;
+use QL\Panthor\Utility\Json;
 
 class EncryptedCookiesTest extends PHPUnit_Framework_TestCase
 {
     public $slim;
+    public $json;
     public $encryption;
 
     public function setUp()
     {
         $this->slim = Mockery::mock('Slim\Slim');
-        $this->encryption = Mockery::mock('MCP\Crypto\AES');
+        $this->json = new Json;
+        $this->encryption = Mockery::mock('QL\Panthor\Http\CookieEncryptionInterface');
     }
 
     public function testDeleteCookieParamsPassThroughToSlim()
@@ -29,7 +32,7 @@ class EncryptedCookiesTest extends PHPUnit_Framework_TestCase
             ->with('name', null, '*.domain.com')
             ->once();
 
-        $cookies = new EncryptedCookies($this->slim, $this->encryption);
+        $cookies = new EncryptedCookies($this->slim, $this->json, $this->encryption);
 
         $cookies->deleteCookie('name', null, '*.domain.com');
     }
@@ -41,24 +44,24 @@ class EncryptedCookiesTest extends PHPUnit_Framework_TestCase
             ->with('name', 'testvalue', 0, '/page', '.domain.com')
             ->once();
 
-        $cookies = new EncryptedCookies($this->slim, $this->encryption);
+        $cookies = new EncryptedCookies($this->slim, $this->json, $this->encryption);
 
         $cookies->setCookie('name', 'testvalue', 0, '/page', '.domain.com');
     }
 
     public function testGetCookieDecryptsCookieFromSlim()
     {
-        $this->encryption
-            ->shouldReceive('decrypt')
-            ->with('encryptedvalue')
-            ->andReturn('decryptedvalue');
-
         $this->slim
             ->shouldReceive('getCookie')
             ->with('name')
             ->andReturn('encryptedvalue');
 
-        $cookies = new EncryptedCookies($this->slim, $this->encryption);
+        $this->encryption
+            ->shouldReceive('decrypt')
+            ->with('encryptedvalue')
+            ->andReturn('"decryptedvalue"');
+
+        $cookies = new EncryptedCookies($this->slim, $this->json, $this->encryption);
 
         $actual = $cookies->getCookie('name');
 
@@ -67,22 +70,22 @@ class EncryptedCookiesTest extends PHPUnit_Framework_TestCase
 
     public function testInvalidCookieDeletesByDefaultAndReturnsNull()
     {
+        $this->slim
+            ->shouldReceive('getCookie')
+            ->with('name')
+            ->andReturn('encryptedvalue');
+
         $this->encryption
             ->shouldReceive('decrypt')
             ->with('encryptedvalue')
             ->andReturnNull();
 
         $this->slim
-            ->shouldReceive('getCookie')
-            ->with('name')
-            ->andReturn('encryptedvalue');
-
-        $this->slim
             ->shouldReceive('deleteCookie')
             ->with('name')
             ->once();
 
-        $cookies = new EncryptedCookies($this->slim, $this->encryption);
+        $cookies = new EncryptedCookies($this->slim, $this->json, $this->encryption);
 
         $actual = $cookies->getCookie('name');
         $this->assertNull($actual);
@@ -92,14 +95,14 @@ class EncryptedCookiesTest extends PHPUnit_Framework_TestCase
     {
         $this->encryption
             ->shouldReceive('encrypt')
-            ->with('cookievalue1')
+            ->with('"cookievalue1"')
             ->andReturn('encrypted-cookievalue1');
         $this->encryption
             ->shouldReceive('encrypt')
-            ->with('cookievalue2')
+            ->with('"cookievalue2"')
             ->andReturn('encrypted-cookievalue2');
 
-        $cookies = new EncryptedCookies($this->slim, $this->encryption);
+        $cookies = new EncryptedCookies($this->slim, $this->json, $this->encryption);
 
         // prime the data
         $cookies['cookie1'] = ['value' => 'cookievalue1'];
@@ -131,7 +134,7 @@ class EncryptedCookiesTest extends PHPUnit_Framework_TestCase
             ->andReturn('encrypted-value')
             ->once();
 
-        $cookies = new EncryptedCookies($this->slim, $this->encryption);
+        $cookies = new EncryptedCookies($this->slim, $this->json, $this->encryption);
 
         // prime the data
         $cookies['cookie1'] = ['value' => $data];
@@ -141,27 +144,81 @@ class EncryptedCookiesTest extends PHPUnit_Framework_TestCase
         $this->assertSame($expected, $cookie['value']);
     }
 
-    public function testCookieIsAutomaticallyStringified()
+    public function testCookieIsAutomaticallyJsonDeserialized()
     {
+        // $data = ['bing', 'bong'];
+        $dataBadlyJsonified = '["bing","bong"}';
+
+        $this->slim
+            ->shouldReceive('getCookie')
+            ->with('cookie1')
+            ->andReturn('encrypted');
+
         $this->encryption
-            ->shouldReceive('encrypt')
-            ->with('stringified')
-            ->andReturn('encrypted-value')
+            ->shouldReceive('decrypt')
+            ->with('encrypted')
+            ->andReturn($dataBadlyJsonified)
             ->once();
 
-        $cookies = new EncryptedCookies($this->slim, $this->encryption);
+        $cookies = new EncryptedCookies($this->slim, $this->json, $this->encryption);
 
-        // prime the data
-        $cookies['cookie1'] = ['value' => new StringableStub('stringified')];
+        $cookie = $cookies->getCookie('cookie1');
 
-        $cookie = $cookies->getResponseCookie('cookie1');
-        $expected = 'encrypted-value';
-        $this->assertSame($expected, $cookie['value']);
+        // Badly formatted json is passed back, rather than decoded json.
+        $this->assertSame($dataBadlyJsonified, $cookie);
+    }
+
+    public function testCookieFailsDecryptionButIsAllowUnencrypted()
+    {
+        $data = ['bing', 'bong'];
+        $dataJsonified = '["bing","bong"]';
+
+        $this->slim
+            ->shouldReceive('getCookie')
+            ->with('cookie1')
+            ->andReturn($dataJsonified);
+
+        $this->encryption
+            ->shouldReceive('decrypt')
+            ->with($dataJsonified)
+            ->andReturnNull()
+            ->once();
+
+        $cookies = new EncryptedCookies($this->slim, $this->json, $this->encryption, ['cookie1']);
+
+        $cookie = $cookies->getCookie('cookie1');
+        $this->assertSame($data, $cookie);
+    }
+
+    public function testCookieFailsDecryptionButIsAllowUnencryptedAndThenAlsoFailsDecodingIsDeleted()
+    {
+        $dataBadlyJsonified = '["bing","bong"}';
+
+        $this->slim
+            ->shouldReceive('getCookie')
+            ->with('cookie1')
+            ->andReturn($dataBadlyJsonified);
+
+        $this->encryption
+            ->shouldReceive('decrypt')
+            ->with($dataBadlyJsonified)
+            ->andReturnNull()
+            ->once();
+
+        $this->slim
+            ->shouldReceive('deleteCookie')
+            ->with('cookie1')
+            ->once();
+
+        $cookies = new EncryptedCookies($this->slim, $this->json, $this->encryption, ['cookie1']);
+
+        $cookie = $cookies->getCookie('cookie1');
+        $this->assertSame(null, $cookie);
     }
 
     public function testMissingCookieReturnsNull()
     {
-        $cookies = new EncryptedCookies($this->slim, $this->encryption);
+        $cookies = new EncryptedCookies($this->slim, $this->json, $this->encryption);
 
         $cookie = $cookies->getResponseCookie('cookie1');
         $this->assertSame(null, $cookie);

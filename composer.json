@@ -30,8 +30,8 @@
         "phpunit/php-invoker": "*",
 
         "psr/log": "*",
-        "ql/mcp-crypto": "1.*",
-        "ql/mcp-core": "1.*",
+        "ql/mcp-crypto": "~2.0",
+        "ql/mcp-core": "~1.0",
         "twig/twig": "*"
     }
 }

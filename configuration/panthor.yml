@@ -16,8 +16,9 @@ parameters:
     twig.template.dir: 'templates'
     twig.cache.dir: '.twig'
 
-    # encryption
-    encryption.secret: ''
+    # cookie
+    cookie.encryption.secret: ''
+    cookie.unencrypted: []
 
     # Internal panthor parameters, do not override unless you know what you are doing.
     panthor.internal.timezone: 'UTC'
@@ -40,7 +41,6 @@ services:
     slim:                           {parent: panthor.slim}
     slim.configurator:              {parent: panthor.slim.configurator}
 
-    # add in 2.0
     slim.halt:                      {parent: panthor.slim.halt}
     slim.not.found:                 {parent: panthor.slim.not.found}
 
@@ -60,8 +60,7 @@ services:
     clock:                          {parent: panthor.clock}
     json:                           {parent: panthor.json}
 
-    encryption:                     {parent: panthor.encryption}
-    encryption.cookie:              {parent: panthor.encryption}
+    cookie.encryption:              {parent: panthor.cookie.encryption}
 
     twig.cache.dir:                 {parent: panthor.twig.cache.dir}
     twig.template.dir:              {parent: panthor.twig.template.dir}
@@ -121,7 +120,11 @@ services:
 
     panthor.slim.cookies:
         class: 'QL\Panthor\Http\EncryptedCookies'
-        arguments: [@slim, @encryption.cookie]
+        arguments:
+            - @slim
+            - @json
+            - @cookie.encryption
+            - %cookie.unencrypted%
 
     panthor.slim.router:
         class: 'Slim\Router'
@@ -142,6 +145,31 @@ services:
     panthor.slim.not.found:
         class: 'QL\Panthor\Slim\NotFound'
         arguments: [@slim]
+
+    ############################################################################
+    # Panthor Cookies
+    #
+    # Required Parameters:
+    #
+    # %cookie.encryption.secret%
+    # %cookie.unencrypted%
+    #
+    ############################################################################
+
+    panthor.cookie.encryption:
+        class: 'QL\Panthor\Http\CookieEncryption\AESCookieEncryption'
+        arguments: [@panthor.encryption.aes]
+
+    panthor.encryption.aes:
+        class: 'MCP\Crypto\Package\AESPackage'
+        arguments: [@panthor.encryption.factory, %cookie.encryption.secret%]
+
+    panthor.encryption.trp:
+        class: 'MCP\Crypto\Package\TamperResistantPackage'
+        arguments: [@panthor.encryption.factory, %cookie.encryption.secret%]
+
+    panthor.encryption.factory:
+        class: 'MCP\Crypto\Primitive\Factory'
 
     ############################################################################
     # Panthor Middleware
@@ -178,10 +206,6 @@ services:
 
     panthor.json:
         class: 'QL\Panthor\Utility\Json'
-
-    panthor.encryption:
-        class: 'MCP\Crypto\AES'
-        arguments: [%encryption.secret%]
 
     ############################################################################
     # Twig
