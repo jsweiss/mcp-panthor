@@ -12,6 +12,7 @@ use Psr\Log\LoggerInterface;
 use QL\ExceptionToolkit\ExceptionDispatcher;
 use QL\HttpProblem\HttpProblemException;
 use QL\Panthor\Exception\NotFoundException;
+use QL\Panthor\Exception\RequestException;
 use Slim\Http\Response;
 use Slim\Slim;
 
@@ -36,6 +37,13 @@ class ErrorHandler
 {
     const LOG_LEVEL = 'error';
 
+    // ::forceSendResponse()
+    use SlimRenderingTrait;
+
+    // ::formatStacktrace()
+    // ::setStacktraceLogging()
+    use StacktraceFormatterTrait;
+
     /**
      * @type ExceptionDispatcher
      */
@@ -59,11 +67,6 @@ class ErrorHandler
     private $slim;
 
     /**
-     * @type string
-     */
-    private $root;
-
-    /**
      * @param ExceptionDispatcher $dispatcher
      * @param LoggerInterface|null $logger
      * @param callable|null $headerSetter
@@ -75,14 +78,9 @@ class ErrorHandler
     ) {
         $this->logger = $logger;
         $this->dispatcher = $dispatcher ?: new ExceptionDispatcher;
+        $this->headerSetter = $headerSetter ?: $this->getDefaultHeaderSetter();
 
-        if (!$headerSetter) {
-            $headerSetter = $this->getDefaultHeaderSetter();
-        }
-
-        $this->headerSetter = $headerSetter;
         $this->slim = null;
-        $this->root = $this->findAppRoot();
     }
 
     /**
@@ -190,50 +188,15 @@ class ErrorHandler
             return false;
         }
 
+        if ($exception instanceof RequestException) {
+            return false;
+        }
+
         if ($exception instanceof HttpProblemException && $status < 500) {
             return false;
         }
 
         return true;
-    }
-
-    /**
-     * Force sending of the response and end the php process.
-     *
-     * This is copypasta from Slim\Slim::run, as once an error occurs and the application has broken out of Slim's
-     * handling context, Slim cannot be made to re-render the response.
-     *
-     * @param Slim $slim
-     *
-     * @return void
-     */
-    private function forceSendResponse(Slim $slim)
-    {
-        list($status, $headers, $body) = $slim->response()->finalize();
-
-        $header = $this->headerSetter;
-
-        if (headers_sent() === false) {
-
-            //Send status
-            $header(sprintf('HTTP/%s %s', $slim->config('http.version'), Response::getMessageForCode($status)));
-
-            // send headers
-            foreach ($headers as $name => $value) {
-                $hValues = explode("\n", $value);
-                foreach ($hValues as $hVal) {
-                    $header(sprintf('%s: %s', $name, $hVal), false);
-                }
-            }
-        }
-
-        // do not set body for HEAD requests
-        if ($slim->request->isHead()) {
-            return;
-        }
-
-        echo $body;
-        exit();
     }
 
     /**
@@ -261,80 +224,6 @@ class ErrorHandler
         }
 
         call_user_func([$this->logger, $level], $exception->getMessage(), $context);
-    }
-
-    /**
-     * @param Exception $exception
-     *
-     * @return string
-     */
-    private function formatStacktrace(Exception $exception)
-    {
-        $trace = $this->formatStacktraceEntry('ERR', [
-            'function' => $exception->getMessage(),
-            'file' => $exception->getFile(),
-            'line' => $exception->getLine()
-        ]);
-
-        foreach ($exception->getTrace() as $index => $entry) {
-            $trace .= $this->formatStacktraceEntry(sprintf('#%d', $index), $entry);
-        }
-
-        return $trace;
-    }
-
-    /**
-     * @param string $index
-     * @param array $entry
-     *
-     * @return string
-     */
-    private function formatStacktraceEntry($index, array $entry)
-    {
-        $entry = array_replace([
-            'file' => '',
-            'line' => '?',
-            'function' => '',
-            'type' => '',
-            'class' => '',
-            'args' => [],
-        ], $entry);
-
-        if ($entry['class']) {
-            $function = $entry['class'] . $entry['type'] . $entry['function'];
-            $args = $entry['args'];
-            array_walk($args, function(&$v) {
-                $v = is_object($v) ? get_class($v) : gettype($v);
-            });
-            $function .= sprintf('(%s)', implode(', ', $args));
-        } else {
-            $function = $entry['function'];
-        }
-
-        $label = str_pad($index, 3);
-
-        $file = $entry['file'] ? sprintf('%s:%s', $entry['file'], $entry['line']) : '[internal function]';
-        $file = ($this->root) ? str_replace($this->root, '', $file) : $file;
-
-        $entry = <<<TEXT
-$label $file
-    $function
-TEXT;
-
-        return $entry . str_repeat(PHP_EOL, 2);
-    }
-
-    /**
-     * @return string
-     */
-    private function findAppRoot()
-    {
-        $current = __DIR__;
-        if ($cut = strpos($current, 'vendor')) {
-            return substr($current, 0, $cut);
-        }
-
-        return '';
     }
 
     /**
