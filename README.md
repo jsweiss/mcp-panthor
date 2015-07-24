@@ -25,6 +25,9 @@ When first setting up an application, we recommend using the composer `create-pr
 - [How to use](docs/USAGE.md)
   > Explanations of controllers and middleware, as well as services injected into the Di Container by Panthor.
 
+- [Error Handling](docs/ERRORS.md)
+  > How to use the included error handler and logger.
+
 - [Web Server Configuration](docs/SERVER.md)
   > Example setups for nginx and apache.
 
@@ -34,12 +37,14 @@ This library contains many convenience utilities and classes for your applicatio
 
 Please take note of the following packages and include them in your composer `require` if you use the associated Panthor functionality.
 
-Library         | Required by
---------------- | -----------
-psr/log         | `Testing\Logger`
-ql/mcp-core     | `Twig\TwigExtension`
-ql/mcp-crypto   | `Http\EncryptedCookies`
-twig/twig       | `Twig\`
+Library                 | Required by
+----------------------- | -----------
+psr/log                 | `Testing\Logger`
+ql/mcp-core             | `Twig\TwigExtension`
+ql/mcp-crypto           | `Http\EncryptedCookies`
+twig/twig               | `Twig\`
+ql/http-problem         | `ErrorHandling\`
+ql/exception-toolkit    | `ErrorHandling\`
 
 ### Development installation
 
