@@ -43,13 +43,13 @@ class LazyTwig implements TemplateInterface
      * The relative path the template itself is optional and may be specified later.
      *
      * @param Twig_Environment $environment
-     * @param Context $context
+     * @param Context|null $context
      * @param string|null $template
      */
-    public function __construct(Twig_Environment $environment, Context $context, $template = null)
+    public function __construct(Twig_Environment $environment, Context $context = null, $template = null)
     {
         $this->environment = $environment;
-        $this->context = $context;
+        $this->context = $context ?: new Context;
         $this->template = $template;
     }
 
