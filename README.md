@@ -45,6 +45,7 @@ ql/mcp-crypto           | `Http\EncryptedCookies`
 twig/twig               | `Twig\`
 ql/http-problem         | `ErrorHandling\`
 ql/exception-toolkit    | `ErrorHandling\`
+symfony/debug           | `ErrorHandling\`
 
 ### Development installation
 
