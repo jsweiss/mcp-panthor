@@ -9,6 +9,7 @@ namespace QL\Panthor\ErrorHandling;
 
 use Exception;
 use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use QL\ExceptionToolkit\ExceptionDispatcher;
 use QL\HttpProblem\HttpProblemException;
 use QL\Panthor\Exception\NotFoundException;
@@ -76,7 +77,7 @@ class ErrorHandler
         ExceptionDispatcher $dispatcher = null,
         callable $headerSetter = null
     ) {
-        $this->logger = $logger;
+        $this->logger = $logger ?: new NullLogger;
         $this->dispatcher = $dispatcher ?: new ExceptionDispatcher;
         $this->headerSetter = $headerSetter ?: $this->getDefaultHeaderSetter();
 

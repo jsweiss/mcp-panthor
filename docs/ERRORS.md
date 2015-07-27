@@ -139,7 +139,7 @@ exception.configurator:
     arguments: [@error.page.twig]
 
 logger:
-    'class': 'Psr\Log\NullLogger';
+    'class': 'Psr\Log\NullLogger'
 
 error.page.twig:
     parent: 'twig.template'
