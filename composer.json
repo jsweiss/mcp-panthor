@@ -13,7 +13,7 @@
         { "type": "composer", "url": "http://composer/" }
     ],
     "require": {
-        "php":                          ">=5.4.0",
+        "php":                          ">=5.5.0",
 
         "slim/slim":                    "~2.4",
 
@@ -30,8 +30,6 @@
 
         "ql/http-problem":  "~1.0",
         "ql/mcp-crypto":    "~2.0",
-        "ql/mcp-core":      "~1.0",
-        "ql/mcp-logger":    "~2.0",
 
         "symfony/debug":    "~2.6",
 
