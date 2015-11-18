@@ -1,6 +1,15 @@
 # Change Log
 All notable changes to this project will be documented in this file. See [keepachangelog.com](http://keepachangelog.com) for reference.
 
+## [2.3.0] - 2015-??-??
+
+- Remove `QL\Panthor\Slim\McpLoggerHook`
+    - Please see **MCPLoggerHook** in `ql/panthor-plugins`.
+- Remove `timepoint` filter from **TwigExtension**.
+    - Please see **TwigExtension** in `ql/panthor-plugins`.
+- Remove `timepoint` function from **TwigExtension**.
+    - Please see **TwigExtension** in `ql/panthor-plugins`.
+
 ## [2.2.0] - 2015-07-27
 
 ### Added

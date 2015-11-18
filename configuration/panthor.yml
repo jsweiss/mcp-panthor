@@ -8,7 +8,6 @@ parameters:
             - 'slim.hook.routes'
 
     debug: false
-    date.timezone: 'America/Detroit'
     request.body.service: 'request.body'
 
     # twig defaults
@@ -19,9 +18,6 @@ parameters:
     # cookie
     cookie.encryption.secret: ''
     cookie.unencrypted: []
-
-    # Internal panthor parameters, do not override unless you know what you are doing.
-    panthor.internal.timezone: 'UTC'
 
 services:
     # Injected at runtime by the Bootstrap
@@ -57,7 +53,6 @@ services:
     slim.hook.apacheAuthorization:  {parent: panthor.slim.hook.apacheAuthorization}
 
     url:                            {parent: panthor.url}
-    clock:                          {parent: panthor.clock}
     json:                           {parent: panthor.json}
 
     cookie.encryption:              {parent: panthor.cookie.encryption}
@@ -200,10 +195,6 @@ services:
             - @slim.response
             - @slim.halt
 
-    panthor.clock:
-        class: 'MCP\DataType\Time\Clock'
-        arguments: ['now', %panthor.internal.timezone%]
-
     panthor.json:
         class: 'QL\Panthor\Utility\Json'
 
@@ -213,7 +204,6 @@ services:
     # Required parameters:
     #
     # %debug%
-    # %date.timezone%
     #
     # %twig.debug%
     # %twig.cache.dir%
@@ -225,8 +215,6 @@ services:
         class: 'QL\Panthor\Twig\TwigExtension'
         arguments:
             - @panthor.url
-            - @panthor.clock
-            - %date.timezone%
             - %debug%
 
     panthor.twig.configurator:
