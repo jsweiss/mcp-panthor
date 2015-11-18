@@ -15,6 +15,10 @@ use Slim\Slim;
  * This hook will populate the authorization header for apache deployments.
  *
  * It should be attached to the "slim.before" event.
+ *
+ * @deprecated 2.3.0
+ *     - To be removed in 3.0.
+ *     - Web server configuration should be fixed to avoid mangling or removing headers.
  */
 class ApacheAuthorizationHeaderHook
 {

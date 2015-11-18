@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file. See [keepac
     - Please see **TwigExtension** in `ql/panthor-plugins`.
 - Remove `timepoint` function from **TwigExtension**.
     - Please see **TwigExtension** in `ql/panthor-plugins`.
+- **ApacheAuthorizationHeaderHook** is deprecated and will be removed in 3.0.
 
 ## [2.2.0] - 2015-07-27
 
