@@ -3,12 +3,18 @@ All notable changes to this project will be documented in this file. See [keepac
 
 ## [2.3.0] - 2015-??-??
 
+Please note: This release has backwards compatibility breaks to remove links to proprietary packages.
+
+### Removed
 - Remove `QL\Panthor\Slim\McpLoggerHook`
     - Please see **MCPLoggerHook** in `ql/panthor-plugins`.
 - Remove `timepoint` filter from **TwigExtension**.
     - Please see **TwigExtension** in `ql/panthor-plugins`.
 - Remove `timepoint` function from **TwigExtension**.
     - Please see **TwigExtension** in `ql/panthor-plugins`.
+- DI: Remove `@clock` service.
+
+### Changed
 - **ApacheAuthorizationHeaderHook** is deprecated and will be removed in 3.0.
 
 ## [2.2.0] - 2015-07-27
