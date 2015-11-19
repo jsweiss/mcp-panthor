@@ -82,18 +82,18 @@ services:
     panthor.slim:
         class: 'Slim\Slim'
         arguments:
-            - debug: %debug%
-        configurator: [@slim.configurator, 'configure']
+            - debug: '%debug%'
+        configurator: ['@slim.configurator', 'configure']
         properties:
             response: @slim.response
 
     panthor.slim.configurator:
         class: 'QL\Panthor\Bootstrap\SlimConfigurator'
-        arguments: [@service_container, %slim.hooks%]
+        arguments: ['@service_container', '%slim.hooks%']
 
     panthor.slim.hook.routes:
         class: 'QL\Panthor\Slim\RouteLoaderHook'
-        arguments: [@service_container, %routes%]
+        arguments: ['@service_container', '%routes%']
 
     panthor.slim.hook.apacheAuthorization:
         class: 'QL\Panthor\Slim\ApacheAuthorizationHeaderHook'
@@ -102,44 +102,44 @@ services:
 
     panthor.slim.environment:
         class: 'Slim\Environment'
-        factory: [@slim, 'environment']
+        factory: ['@slim', 'environment']
 
     panthor.slim.request:
         class: 'Slim\Http\Request'
-        factory: [@slim, 'request']
+        factory: ['@slim', 'request']
 
     panthor.slim.response:
         class: 'Slim\Http\Response'
         properties:
-            cookies: @slim.cookies
+            cookies: '@slim.cookies'
 
     panthor.slim.cookies:
         class: 'QL\Panthor\Http\EncryptedCookies'
         arguments:
-            - @slim
-            - @json
-            - @cookie.encryption
-            - %cookie.unencrypted%
+            - '@slim'
+            - '@json'
+            - '@cookie.encryption'
+            - '%cookie.unencrypted%'
 
     panthor.slim.router:
         class: 'Slim\Router'
-        factory: [@slim, 'router']
+        factory: ['@slim', 'router']
 
     panthor.slim.route:
         class: 'Slim\Route'
-        factory: [@slim.router, 'getCurrentRoute']
+        factory: ['@slim.router', 'getCurrentRoute']
 
     panthor.slim.route.parameters:
         class: 'na'
-        factory: [@slim.route, 'getParams']
+        factory: ['@slim.route', 'getParams']
 
     panthor.slim.halt:
         class: 'QL\Panthor\Slim\Halt'
-        arguments: [@slim]
+        arguments: ['@slim']
 
     panthor.slim.not.found:
         class: 'QL\Panthor\Slim\NotFound'
-        arguments: [@slim]
+        arguments: ['@slim']
 
     ############################################################################
     # Panthor Cookies
@@ -153,15 +153,15 @@ services:
 
     panthor.cookie.encryption:
         class: 'QL\Panthor\Http\CookieEncryption\AESCookieEncryption'
-        arguments: [@panthor.encryption.aes]
+        arguments: ['@panthor.encryption.aes']
 
     panthor.encryption.aes:
         class: 'MCP\Crypto\Package\AESPackage'
-        arguments: [@panthor.encryption.factory, %cookie.encryption.secret%]
+        arguments: ['@panthor.encryption.factory', '%cookie.encryption.secret%']
 
     panthor.encryption.trp:
         class: 'MCP\Crypto\Package\TamperResistantPackage'
-        arguments: [@panthor.encryption.factory, %cookie.encryption.secret%]
+        arguments: ['@panthor.encryption.factory', '%cookie.encryption.secret%']
 
     panthor.encryption.factory:
         class: 'MCP\Crypto\Primitive\Factory'
@@ -178,10 +178,10 @@ services:
     panthor.middleware.requestBody:
         class: 'QL\Panthor\Middleware\RequestBodyMiddleware'
         arguments:
-            - @service_container
-            - @slim.request
-            - @json
-            - %request.body.service%
+            - '@service_container'
+            - '@slim.request'
+            - '@json'
+            - '%request.body.service%'
 
     ############################################################################
     # Panthor Utilities
@@ -190,10 +190,10 @@ services:
     panthor.url:
         class: 'QL\Panthor\Utility\Url'
         arguments:
-            - @slim.router
-            - @slim.request
-            - @slim.response
-            - @slim.halt
+            - '@slim.router'
+            - '@slim.request'
+            - '@slim.response'
+            - '@slim.halt'
 
     panthor.json:
         class: 'QL\Panthor\Utility\Json'
@@ -214,36 +214,36 @@ services:
     panthor.twig.extension:
         class: 'QL\Panthor\Twig\TwigExtension'
         arguments:
-            - @panthor.url
-            - %debug%
+            - '@panthor.url'
+            - '%debug%'
 
     panthor.twig.configurator:
         class: 'QL\Panthor\Twig\EnvironmentConfigurator'
-        arguments: [%twig.debug%, @twig.cache.dir]
+        arguments: ['%twig.debug%', '@twig.cache.dir']
 
     panthor.twig.template:
         class: 'QL\Panthor\Twig\LazyTwig'
-        arguments: [@twig.environment, @twig.context]
+        arguments: ['@twig.environment', '@twig.context']
     panthor.twig.context:
         class: 'QL\Panthor\Twig\Context'
 
     panthor.twig.template.dir:
         class: 'Factory_generated_scalar'
         factory: ['QL\Panthor\Utility\Stringify', 'template']
-        arguments: ['%%s/%%s', [@root, %twig.template.dir%]]
+        arguments: ['%%s/%%s', ['@root', '%twig.template.dir%']]
 
     panthor.twig.cache.dir:
         class: 'Factory_generated_scalar'
         factory: ['QL\Panthor\Utility\Stringify', 'template']
-        arguments: ['%%s/%%s', [@root, %twig.cache.dir%]]
+        arguments: ['%%s/%%s', ['@root', '%twig.cache.dir%']]
 
     panthor.twig.loader:
         class: 'QL\Panthor\Twig\BetterCachingFilesystem'
-        arguments: [@panthor.twig.template.dir]
+        arguments: ['@panthor.twig.template.dir']
 
     panthor.twig.environment:
         class: 'Twig_Environment'
-        arguments: [@twig.loader]
-        configurator: [@panthor.twig.configurator, 'configure']
+        arguments: ['@twig.loader']
+        configurator: ['@panthor.twig.configurator', 'configure']
         calls:
-            - ['addExtension', [@panthor.twig.extension]]
+            - ['addExtension', ['@panthor.twig.extension']]
