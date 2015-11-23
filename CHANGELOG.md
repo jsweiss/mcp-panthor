@@ -13,6 +13,8 @@ Please note: This release has backwards compatibility breaks to remove links to 
 - Remove `timepoint` function from **TwigExtension**.
     - Please see **TwigExtension** in `ql/panthor-plugins`.
 - DI: Remove `@clock` service.
+- Remove **ApacheAuthorizationHook**
+    - This includes removal of `@slim.hook.apacheAuthorization` service.
 
 ### Changed
 - **ApacheAuthorizationHeaderHook** is deprecated and will be removed in 3.0.

@@ -50,7 +50,6 @@ services:
     slim.route.parameters:          {parent: panthor.slim.route.parameters}
 
     slim.hook.routes:               {parent: panthor.slim.hook.routes}
-    slim.hook.apacheAuthorization:  {parent: panthor.slim.hook.apacheAuthorization}
 
     url:                            {parent: panthor.url}
     json:                           {parent: panthor.json}
@@ -94,9 +93,6 @@ services:
     panthor.slim.hook.routes:
         class: 'QL\Panthor\Slim\RouteLoaderHook'
         arguments: ['@service_container', '%routes%']
-
-    panthor.slim.hook.apacheAuthorization:
-        class: 'QL\Panthor\Slim\ApacheAuthorizationHeaderHook'
 
     # slim accessors
 
