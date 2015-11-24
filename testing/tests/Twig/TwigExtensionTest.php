@@ -9,6 +9,7 @@ namespace QL\Panthor\Twig;
 
 use Mockery;
 use PHPUnit_Framework_TestCase;
+use QL\Panthor\Utility\Url;
 
 class TwigExtensionTest extends PHPUnit_Framework_TestCase
 {
