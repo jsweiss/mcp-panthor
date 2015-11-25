@@ -2,8 +2,6 @@ parameters:
     # Parameters overridden by application configuration
     routes: []
     slim.hooks:
-        slim.before:
-            - 'slim.hook.apacheAuthorization'
         slim.before.router:
             - 'slim.hook.routes'
 
@@ -18,6 +16,12 @@ parameters:
     # cookie
     cookie.encryption.secret: ''
     cookie.unencrypted: []
+
+    error_handling.levels: 32767            # E_ALL
+    error_handling.thrown_errors: 8191      # E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED
+    error_handling.logged_errors: 32767     # E_ALL
+    error_handling.log_stacktrace: false
+    error_handling.html_template: 'error.html.twig'
 
 services:
     # Injected at runtime by the Bootstrap
@@ -53,6 +57,9 @@ services:
 
     url:                            {parent: panthor.url}
     json:                           {parent: panthor.json}
+    logger:                         {parent: panthor.logger}
+
+    error.handler:                  {parent: panthor.error_handling.handler}
 
     cookie.encryption:              {parent: panthor.cookie.encryption}
 
@@ -65,7 +72,7 @@ services:
     twig.loader:                    {parent: panthor.twig.loader}
     twig.environment:               {parent: panthor.twig.environment}
 
-    middleware.requestBody:         {parent: panthor.middleware.requestBody}
+    middleware.request_body:        {parent: panthor.middleware.request_body}
 
     ############################################################################
     # Slim
@@ -163,21 +170,92 @@ services:
         class: 'MCP\Crypto\Primitive\Factory'
 
     ############################################################################
+    # Error Handling
+    #
+    # Required Parameters:
+    #
+    # %error_handling.log_stacktrace%
+    # %error_handling.levels%
+    # %error_handling.thrown_errors%
+    # %error_handling.logged_errors%
+    #
+    ############################################################################
+
+    panthor.error_handling.handler:
+        class: 'QL\Panthor\ErrorHandling\ErrorHandler'
+        arguments: ['@logger']
+        calls:
+            - ['setStacktraceLogging', ['%error_handling.log_stacktrace%']]
+            - ['setThrownErrors', ['%error_handling.thrown_errors%']]
+            - ['setLoggedErrors', ['%error_handling.logged_errors%']]
+            - ['addHandler', ['@panthor.error_handling.handler.not_found']]
+            - ['addHandler', ['@panthor.error_handling.handler.http_problem']]
+            - ['addHandler', ['@panthor.error_handling.handler.request']]
+            - ['addHandler', ['@panthor.error_handling.handler.base']]
+
+    panthor.error_handling.handler.not_found:
+        class: 'QL\Panthor\ErrorHandling\ExceptionHandler\NotFoundHandler'
+        arguments: ['@panthor.error_handling.html_renderer']
+    panthor.error_handling.handler.http_problem:
+        class: 'QL\Panthor\ErrorHandling\ExceptionHandler\HTTPProblemHandler'
+        arguments: ['@panthor.error_handling.problem_renderer']
+    panthor.error_handling.handler.request:
+        class: 'QL\Panthor\ErrorHandling\ExceptionHandler\RequestExceptionHandler'
+        arguments: ['@panthor.error_handling.problem_renderer']
+    panthor.error_handling.handler.base:
+        class: 'QL\Panthor\ErrorHandling\ExceptionHandler\BaseHandler'
+        arguments: ['@panthor.error_handling.html_renderer', '@logger']
+        calls:
+            - ['setStacktraceLogging', ['%error_handling.log_stacktrace%']]
+
+    # exception rendering
+    panthor.error_handling.html_renderer:
+        class: 'QL\Panthor\ErrorHandling\ExceptionRenderer\HTMLRenderer'
+        arguments: ['@panthor.error_handling.html_renderer.twig']
+        calls: [['attachSlim', ['@slim']]]
+
+    panthor.error_handling.html_renderer.twig:
+        class: 'QL\Panthor\Twig\LazyTwig'
+        arguments: ['@twig.environment', '@twig.context']
+        calls: [['setTemplate', ['%error_handling.html_template%']]]
+
+    panthor.error_handling.problem_renderer:
+        class: 'QL\Panthor\ErrorHandling\ExceptionRenderer\ProblemRenderer'
+        arguments: ['@panthor.error_handling.problem.json_renderer']
+        calls: [['attachSlim', ['@slim']]]
+    panthor.error_handling.problem.json_renderer:
+        class: 'QL\Panthor\HTTPProblem\Renderer\JSONRenderer'
+
+    ############################################################################
     # Panthor Middleware
     #
     # Required Parameters:
     #
     # %request.body.service%
+    # %error_handling.levels%
     #
     ############################################################################
 
-    panthor.middleware.requestBody:
+    panthor.middleware.request_body:
         class: 'QL\Panthor\Middleware\RequestBodyMiddleware'
         arguments:
             - '@service_container'
             - '@slim.request'
             - '@json'
             - '%request.body.service%'
+
+    panthor.middleware.error_handling:
+        class: 'QL\Panthor\Slim\ProtectErrorHandlerMiddleware'
+        arguments:
+            - ['@error.handler', 'handleError']
+            - '%error_handling.levels%'
+
+    ############################################################################
+    # Logging
+    ############################################################################
+
+    panthor.logger:
+        class: 'Psr\Log\NullLogger'
 
     ############################################################################
     # Panthor Utilities

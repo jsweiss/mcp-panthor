@@ -32,14 +32,60 @@ trait StacktraceFormatterTrait
     }
 
     /**
+     * @param array $stacktrace
+     *
+     * @return string
+     */
+    private function formatStacktrace(array $stacktrace)
+    {
+        $this->root = $this->findApplicationRoot();
+
+        $trace = '';
+        if ($first = array_shift($stacktrace)) {
+            $trace = $this->formatStacktraceEntry('ERR', $first);
+        }
+
+        if (!$this->logStacktraces) {
+            return $trace;
+        }
+
+        foreach ($stacktrace as $index => $entry) {
+            $trace .= $this->formatStacktraceEntry(sprintf('#%d', $index), $entry);
+        }
+
+        return $trace;
+    }
+
+    /**
+     * @param Exception|Exception[] $exceptions
+     *
+     * @return string
+     */
+    private function formatStacktraceForExceptions($exceptions)
+    {
+        if (!is_array($exceptions)) {
+            $exceptions = [$exceptions];
+        }
+
+        $this->root = $this->findApplicationRoot();
+
+        $trace = '';
+        foreach ($exceptions as $ex) {
+            if ($ex instanceof Exception) {
+                $trace .= $this->formatExceptionStacktrace($ex);
+            }
+        }
+
+        return $trace;
+    }
+
+    /**
      * @param Exception $exception
      *
      * @return string
      */
-    private function formatStacktrace(Exception $exception)
+    private function formatExceptionStacktrace(Exception $exception)
     {
-        $this->root = $this->findApplicationRoot();
-
         $trace = $this->formatStacktraceEntry('ERR', [
             'function' => $exception->getMessage(),
             'file' => $exception->getFile(),

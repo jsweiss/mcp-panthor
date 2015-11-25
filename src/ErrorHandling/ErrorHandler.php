@@ -7,48 +7,59 @@
 
 namespace QL\Panthor\ErrorHandling;
 
+use ErrorException;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
-use QL\ExceptionToolkit\ExceptionDispatcher;
-use QL\HttpProblem\HttpProblemException;
 use QL\Panthor\Exception\NotFoundException;
-use QL\Panthor\Exception\RequestException;
-use Slim\Http\Response;
 use Slim\Slim;
 
 /**
  * This handler requires:
- * - "ql/exception-toolkit"
  * - "psr/log"
  *
- * Also recommended:
- * - "ql/http-problem"
- * - "symfony/debug"
- *
- * It should be should be attached to the "slim.before" event.
- *
  * This class is responsible for:
- * - Registering error handler on slim
- * - Logging errors/exceptions
- * - Routing exceptions to the dispatcher
- * - Forcing the response to render in the case of super fatals
+ * - Handling exceptions
+ * - Handling errors
+ * - Attaching to Slim to take over notFound() and error() handling.
+ * - Logging errors
+ * - Convert all superfatals to exceptions
+ *
+ * Default errors converted to Exceptions:
+ * - E_ALL - E_DEPRECATED - E_USER_DEPRECATED
+ *
+ * Default errors logged:
+ * - E_DEPRECATED | E_USER_DEPRECATED
+ *
+ * Example usage:
+ * ```php
+ * $logger = new NullLogger;
+ * $app = new Slim;
+ *
+ * $handler = new ErrorHandler($logger);
+ * $handler->setStacktraceLogging(true);
+ * $handler->setThrownErrors(\E_ALL & ~\E_DEPRECATED & ~\E_USER_DEPRECATED);
+ * $handler->setLoggedErrors(\E_DEPRECATED | \E_USER_DEPRECATED);
+ *
+ * // The following will register ErrorHandler as error, exception, and shutdown handlers.
+ * $handler->register();
+ *
+ * // Attach handler to Slim to take over 404 and error handling.
+ * $handler->attach($app);
+ *
+ * // A stack of exception handlers can be provided to handle certain types of exceptions.
+ * $handler->addHandler($handlerForNotFound);
+ * $handler->addHandler($handlerForClientErrors);
+ * $handler->addHandler($handlerForBaseException);
+ * ```
  */
 class ErrorHandler
 {
     const LOG_LEVEL = 'error';
 
-    // ::forceSendResponse()
-    use SlimRenderingTrait;
-
     // ::formatStacktrace()
     // ::setStacktraceLogging()
     use StacktraceFormatterTrait;
-
-    /**
-     * @type ExceptionDispatcher
-     */
-    private $dispatcher;
 
     /**
      * @type LoggerInterface|null
@@ -56,32 +67,97 @@ class ErrorHandler
     private $logger;
 
     /**
-     * @type callable
+     * @type ExceptionHandlerInterface[]
      */
-    private $headerSetter;
+    private $handlers;
 
     /**
-     * The slim instance the hook has been attached to.
-     *
-     * @type Slim|null
+     * @type int
      */
-    private $slim;
+    private $thrownErrors;
+    private $loggedErrors;
 
     /**
-     * @param ExceptionDispatcher $dispatcher
+     * @type array
+     */
+    private $logLevels;
+
+    /**
+     * @type self
+     */
+    private static $exceptionHandler;
+
+    /**
+     * @type string
+     */
+    private static $reservedMemory;
+
+    /**
+     * @type array
+     */
+    private static $levels = array(
+        \E_DEPRECATED => 'E_DEPRECATED',
+        \E_USER_DEPRECATED => 'E_USER_DEPRECATED',
+        \E_NOTICE => 'E_NOTICE',
+        \E_USER_NOTICE => 'E_USER_NOTICE',
+        \E_STRICT => 'E_STRICT',
+        \E_WARNING => 'E_WARNING',
+        \E_USER_WARNING => 'E_USER_WARNING',
+        \E_USER_ERROR => 'E_USER_ERROR',
+        \E_RECOVERABLE_ERROR => 'E_RECOVERABLE_ERROR',
+
+        \E_PARSE => 'E_PARSE',
+        \E_ERROR => 'E_ERROR',
+        \E_COMPILE_ERROR => 'E_COMPILE_ERROR',
+        \E_COMPILE_WARNING => 'E_COMPILE_WARNING',
+        \E_CORE_ERROR => 'E_CORE_ERROR',
+        \E_CORE_WARNING => 'E_CORE_WARNING',
+    );
+
+    /**
+     * @type array
+     */
+    private static $humanLevels = array(
+        \E_DEPRECATED => 'Deprecated',
+        \E_USER_DEPRECATED => 'User Deprecated',
+        \E_NOTICE => 'Notice',
+        \E_USER_NOTICE => 'User Notice',
+        \E_STRICT => 'Runtime Notice',
+        \E_WARNING => 'Warning',
+        \E_USER_WARNING => 'User Warning',
+        \E_USER_ERROR => 'User Error',
+        \E_RECOVERABLE_ERROR => 'Catchable Fatal Error',
+
+        \E_PARSE => 'Parse Error',
+        \E_ERROR => 'Error',
+        \E_COMPILE_ERROR => 'Compile Error',
+        \E_COMPILE_WARNING => 'Compile Warning',
+        \E_CORE_ERROR => 'Core Error',
+        \E_CORE_WARNING => 'Core Warning',
+    );
+
+    /**
      * @param LoggerInterface|null $logger
-     * @param callable|null $headerSetter
      */
-    public function __construct(
-        LoggerInterface $logger = null,
-        ExceptionDispatcher $dispatcher = null,
-        callable $headerSetter = null
-    ) {
+    public function __construct(LoggerInterface $logger = null)
+    {
         $this->logger = $logger ?: new NullLogger;
-        $this->dispatcher = $dispatcher ?: new ExceptionDispatcher;
-        $this->headerSetter = $headerSetter ?: $this->getDefaultHeaderSetter();
+        $this->handlers = [];
 
-        $this->slim = null;
+        $this->thrownErrors = \E_ALL & ~\E_DEPRECATED & ~\E_USER_DEPRECATED;
+        $this->loggedErrors = \E_ALL;
+
+        $this->logLevels = [
+            \E_DEPRECATED => 'warning',
+            \E_USER_DEPRECATED => 'warning',
+            \E_NOTICE => 'warning',
+            \E_USER_NOTICE => 'warning',
+            \E_STRICT => 'warning',
+            \E_WARNING => 'error',
+            \E_USER_WARNING => 'error',
+            \E_USER_ERROR => 'error',
+            \E_RECOVERABLE_ERROR => 'error',
+        ];
     }
 
     /**
@@ -89,10 +165,8 @@ class ErrorHandler
      *
      * @return void
      */
-    public function __invoke(Slim $slim)
+    public function attach(Slim $slim)
     {
-        $this->slim = $slim;
-
         // Register Global Exception Handler
         $slim->notFound([$this, 'handleNotFound']);
 
@@ -107,12 +181,96 @@ class ErrorHandler
      */
     public function handleException(Exception $exception)
     {
-        if ($this->shouldLogException($exception)) {
-            $this->log($exception);
+        foreach ($this->handlers as $handler) {
+            $canHandle = false;
+            foreach ($handler->getHandledExceptions() as $exceptionType) {
+                if ($exception instanceof $exceptionType) {
+                    $canHandle = true;
+                    break;
+                }
+            }
+
+            if (!$canHandle) continue;
+
+            $isHandled = false;
+
+            try {
+                $isHandled = $handler->handle($exception);
+            } catch (Exception $ex) {
+                // If exception handler throws exception, break out of stack and rethrow.
+                break;
+            }
+
+            // Abort handler stack if handler returns true
+            if ($isHandled) exit;
         }
 
-        $this->dispatcher->dispatch($exception);
-        if ($this->slim) $this->slim->stop();
+        // Rethrow to be handled by default php exception handling.
+        throw $exception;
+    }
+
+    /**
+     * @param int $errno
+     * @param string $errstr
+     * @param string $errfile
+     * @param int $errline
+     * @param array $errcontext
+     *
+     * @see http://php.net/manual/en/function.set-error-handler.php
+     *
+     * @return bool
+     */
+    public function handleError($errno, $errstr, $errfile, $errline, array $errcontext = [])
+    {
+        $msg = sprintf('%s: %s', self::getErrorDescription($errno), $errstr);
+
+        if ($errno & $this->thrownErrors) {
+            throw new ErrorException($msg, 0, $errno, $errfile, $errline);
+        }
+
+        if ($this->logError($errno, $msg, $errfile, $errline)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Shutdown registered function for handling PHP fatal errors.
+     *
+     * @throws Exception
+     */
+    public static function handleFatalError()
+    {
+        self::$reservedMemory = '';
+
+        if (!$handler = self::$exceptionHandler) {
+            return;
+        }
+
+        $error = error_get_last();
+
+        if ($error && $error['type'] &= E_PARSE | E_ERROR | E_CORE_ERROR | E_COMPILE_ERROR) {
+
+            $msg = sprintf('%s: %s', self::getErrorDescription($error['type']), $error['message']);
+
+            if (0 === strpos($error['message'], 'Allowed memory') || 0 === strpos($error['message'], 'Out of memory')) {
+                $exception = new ErrorException($msg, 0, $error['type'], $error['file'], $error['line']);
+            } else {
+                // @todo provide backtrace (through symfony/debug?)
+                $exception = new ErrorException($msg, 0, $error['type'], $error['file'], $error['line']);
+            }
+        }
+
+        if (!isset($exception)) {
+            return;
+        }
+
+        try {
+            $handler->handleException($exception);
+        } catch (Exception $ex) {
+            // Silence any further exceptions
+        }
     }
 
     /**
@@ -126,44 +284,41 @@ class ErrorHandler
     }
 
     /**
-     * Prepare response for output
+     * Register this handler as the exception, error, and shutdown handler.
      *
-     * @param string $body
-     * @param int $status
-     * @param array $headers
-     * @param bool $kill
-     *                Pass true to end the response and force the response to output. Only needed for superfatals.
+     * @param int $handledErrors
      *
      * @return void
      */
-    public function prepareResponse($body, $status = 500, $headers = [], $kill = false)
+    public function register($handledErrors = \E_ALL)
     {
-        if (!$this->slim || !$this->slim->response()) {
-            // Silently fail if never invoked
-            return;
+        $errHandler = [$this, 'handleError'];
+        $exHandler = [$this, 'handleException'];
+
+        $handledErrors = is_int($handledErrors) ? $handledErrors : \E_ALL;
+
+        set_error_handler($errHandler, $handledErrors);
+        set_exception_handler($exHandler);
+
+        if (null === self::$reservedMemory) {
+            self::$reservedMemory = str_repeat('x', 10240);
+            register_shutdown_function(__CLASS__ . '::handleFatalError');
         }
 
-        $response = $this->slim->response();
-
-        $response->setBody($body);
-        $response->setStatus($status);
-        foreach ($headers as $key => $value) {
-            $response->headers->set($key, $value);
-        }
-
-        if ($kill) {
-            $this->forceSendResponse($this->slim);
-        }
+        self::$exceptionHandler = $this;
     }
 
     /**
-     * @param callable $callable
+     * Add an exception handler. These handlers can be used to handle different scenarios by introspecting the
+     * exception (API vs HTML exceptions for example).
+     *
+     * @param ExceptionHandlerInterface $handler
      *
      * @return void
      */
-    public function registerHandler(callable $callable)
+    public function addHandler(ExceptionHandlerInterface $handler)
     {
-        $this->dispatcher->add($callable);
+        $this->handlers[] = $handler;
     }
 
     /**
@@ -171,67 +326,101 @@ class ErrorHandler
      *
      * @return void
      */
-    public function registerHandlers(array $handlers)
+    public function addHandlers(array $handlers)
     {
         foreach ($handlers as $handler) {
-            $this->registerHandler($handler);
+            $this->addHandler($handler);
         }
     }
 
     /**
-     * Override this method to customize your logic for determining whether an exception should be logged.
-     */
-    protected function shouldLogException(Exception $exception)
-    {
-        $status = $exception->getCode();
-
-        if ($exception instanceof NotFoundException) {
-            return false;
-        }
-
-        if ($exception instanceof RequestException) {
-            return false;
-        }
-
-        if ($exception instanceof HttpProblemException && $status < 500) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Create and send a log message.
+     * Errors that will be thrown as exceptions.
      *
-     * Unfortunately, Slim treats ALL warnings, errors, and fatals the same. So logging different levels is not important.
-     * All exceptions are sent to this method, so it must filter exceptions we think may not actually be errors (e.g. HttpProblem)
-     *
-     * @param Exception $exception
+     * @param int $thrownTypes
      *
      * @return void
      */
-    private function log(Exception $exception)
+    public function setThrownErrors($thrownTypes)
     {
-        $level = static::LOG_LEVEL;
-
-        $context = [
-            'exceptionClass' => get_class($exception),
-            'exceptionData' => $this->formatStacktrace($exception),
-        ];
-
-        if ($previous = $exception->getPrevious()) {
-            $context['previousExceptionClass'] = get_class($previous);
-            $context['previousExceptionData'] = $this->formatStacktrace($previous);
+        if (is_int($thrownTypes)) {
+            $this->thrownErrors = $thrownTypes;
         }
-
-        call_user_func([$this->logger, $level], $exception->getMessage(), $context);
     }
 
     /**
-     * @return callable
+     * Errors that will be logged only.
+     *
+     * @param int $thrownTypes
+     *
+     * @return void
      */
-    private function getDefaultHeaderSetter()
+    public function setLoggedErrors($loggedTypes)
     {
-        return 'header';
+        if (is_int($loggedTypes)) {
+            $this->loggedErrors = $loggedTypes;
+        }
+    }
+
+    /**
+     * @param int $errorSeverity
+     *
+     * @return string
+     */
+    public static function getErrorDescription($errorSeverity)
+    {
+        if (isset(self::$humanLevels[$errorSeverity])) {
+            return self::$humanLevels[$errorSeverity];
+        } else {
+            return 'Exception';
+        }
+    }
+
+    /**
+     * @param int $errorSeverity
+     *
+     * @return string
+     */
+    public static function getErrorType($errorSeverity)
+    {
+        if (isset(self::$levels[$errorSeverity])) {
+            return self::$levels[$errorSeverity];
+        } else {
+            return 'UNKNOWN';
+        }
+    }
+
+    /**
+     * @param int $errno
+     * @param string $errstr
+     * @param string $errfile
+     * @param string $errline
+     *
+     * @return bool
+     */
+    private function logError($errno, $errstr, $errfile, $errline)
+    {
+        if (!($errno & $this->loggedErrors)) {
+            return false;
+        }
+
+        $loggedLevel = isset($this->logLevels[$errno]) ? $this->logLevels[$errno] : 'error';
+
+        $stacktrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
+        $stacktrace = array_slice($stacktrace, 2);
+
+        array_unshift($stacktrace, [
+            'file' => $errfile,
+            'line' => $errline
+        ]);
+
+        $this->logger->log($loggedLevel, $errstr, [
+            'errorCode' => $errno,
+            'errorType' => self::getErrorType($errno),
+            'errorFile' => $errfile,
+            'errorLine' => $errline,
+            'errorStacktrace' => $this->formatStacktrace($stacktrace)
+        ]);
+
+        return true;
     }
 }

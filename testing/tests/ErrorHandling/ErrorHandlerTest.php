@@ -7,63 +7,35 @@
 
 namespace QL\Panthor\ErrorHandling;
 
-use Exception;
+use ErrorException;
 use Mockery;
 use PHPUnit_Framework_TestCase;
-use QL\HttpProblem\HttpProblemException;
 use QL\Panthor\Testing\TestLogger;
+use QL\Panthor\Exception\Exception;
 use QL\Panthor\Exception\NotFoundException;
 use QL\Panthor\Exception\RequestException;
-use Slim\Http\Headers;
-use Slim\Http\Response;
+use QL\Panthor\ErrorHandling\ExceptionHandler\GenericHandler;
 use Slim\Slim;
 
 class ErrorHandlerTest extends PHPUnit_Framework_TestCase
 {
-    private $slim;
-    private $response;
-    private $dispatcher;
-
-    public function setUp()
-    {
-        $this->response = Mockery::mock(Response::CLASS);
-        $this->slim = Mockery::mock(Slim::CLASS, ['response' => $this->response]);
-        $this->dispatcher = Mockery::mock('QL\ExceptionToolkit\ExceptionDispatcher');
-    }
-
     public function testHandlerIsAttached()
     {
         $handler = new ErrorHandler;
 
-        $this->slim
+        $slim = Mockery::mock(Slim::CLASS);
+
+        $slim
             ->shouldReceive('notFound')
             ->with([$handler, 'handleNotFound'])
             ->once();
 
-        $this->slim
+        $slim
             ->shouldReceive('error')
             ->with([$handler, 'handleException'])
             ->once();
 
-        $handler($this->slim);
-    }
-
-    public function testNonErrorExceptionsAreNotLogged()
-    {
-        $logger = new TestLogger;
-        $this->dispatcher
-            ->shouldReceive('dispatch')
-            ->times(5);
-
-        $handler = new ErrorHandler($logger, $this->dispatcher);
-
-        $handler->handleException(new Exception);
-        $handler->handleException(new NotFoundException);
-        $handler->handleException(new RequestException);
-        $handler->handleException(HttpProblemException::build(500, 'test'));
-        $handler->handleException(HttpProblemException::build(403, 'test'));
-
-        $this->assertCount(2, $logger->messages);
+        $handler->attach($slim);
     }
 
     /**
@@ -76,38 +48,130 @@ class ErrorHandlerTest extends PHPUnit_Framework_TestCase
         $handler->handleNotFound();
     }
 
-    public function testNonAttachedHandlerFailsGracefully()
+    /**
+     * @expectedException QL\Panthor\Exception\RequestException
+     */
+    public function testUnhandledExceptionIsRethrown()
     {
         $handler = new ErrorHandler;
-        $actual = $handler->prepareResponse('test');
-        $this->assertSame(null, $actual);
+
+        $handler->handleException(new RequestException);
     }
 
-    public function testPrepareResponseOnAttachedHandler()
+    public function testHandlerThrowsExceptionWillAbortStackAndRethrow()
     {
-        $this->slim
-            ->shouldReceive('notFound');
-        $this->slim
-            ->shouldReceive('error');
+        $exHandler1 = new GenericHandler([Exception::CLASS], function($ex) {
+            throw $ex;
+        });
 
-        $this->response
-            ->shouldReceive('setBody')
-            ->with('test')
-            ->once();
-        $this->response
-            ->shouldReceive('setStatus')
-            ->with(500)
-            ->once();
-
-        $this->response->headers = Mockery::mock(Headers::CLASS);
-        $this->response->headers
-            ->shouldReceive('set')
-            ->with('testheader', 'abc')
-            ->once();
+        $called = false;
+        $exHandler2 = new GenericHandler([Exception::CLASS], function($ex) use (&$called) {
+            $called = true;
+            return false;
+        });
 
         $handler = new ErrorHandler;
-        $handler($this->slim);
+        $handler->addHandlers([
+            $exHandler1,
+            $exHandler2,
+        ]);
 
-        $handler->prepareResponse('test', 500, ['testheader' => 'abc']);
+        $exception = new Exception;
+        try {
+            $handler->handleException($exception);
+        } catch (Exception $ex) {
+            $rethrown = $ex;
+        }
+
+        $this->assertSame($ex, $rethrown);
+        $this->assertSame(false, $called);
+    }
+
+    public function testThrowableErrorIsThrownAsErrorException()
+    {
+        $handler = new ErrorHandler;
+        $handler->setThrownErrors(\E_DEPRECATED);
+        $handler->setLoggedErrors(\E_DEPRECATED);
+
+        try {
+            $isHandled = $handler->handleError(\E_DEPRECATED, 'error message', 'filename.php', '80');
+        } catch (ErrorException $ex) {}
+
+        $this->assertInstanceOf(ErrorException::CLASS, $ex);
+        $this->assertSame(\E_DEPRECATED, $ex->getSeverity());
+    }
+
+    public function testErrorIsNotThrownAndNotHandled()
+    {
+        $handler = new ErrorHandler;
+        $handler->setThrownErrors(\E_NOTICE);
+        $handler->setLoggedErrors(\E_NOTICE);
+
+        $isHandled = $handler->handleError(\E_DEPRECATED, 'error message', 'filename.php', '80');
+        $this->assertSame(false, $isHandled);
+    }
+
+    public function testLoggableErrorIsLoggedIfNotThrown()
+    {
+        $logger = new TestLogger;
+        $handler = new ErrorHandler($logger);
+        $handler->setThrownErrors(\E_NOTICE);
+        $handler->setLoggedErrors(\E_DEPRECATED);
+
+        $isHandled = $handler->handleError(\E_DEPRECATED, 'error message', 'filename.php', '80');
+
+        $this->assertSame(true, $isHandled);
+        $this->assertCount(1, $logger->messages);
+        $this->assertSame('Deprecated: error message', $logger->messages[0]['message']);
+    }
+
+    public function testErrorSeverityType()
+    {
+        $this->assertSame('E_DEPRECATED', ErrorHandler::getErrorType(\E_DEPRECATED));
+        $this->assertSame('E_USER_DEPRECATED', ErrorHandler::getErrorType(\E_USER_DEPRECATED));
+
+        $this->assertSame('E_NOTICE', ErrorHandler::getErrorType(\E_NOTICE));
+        $this->assertSame('E_USER_NOTICE', ErrorHandler::getErrorType(\E_USER_NOTICE));
+        $this->assertSame('E_STRICT', ErrorHandler::getErrorType(\E_STRICT));
+
+        $this->assertSame('E_WARNING', ErrorHandler::getErrorType(\E_WARNING));
+        $this->assertSame('E_USER_WARNING', ErrorHandler::getErrorType(\E_USER_WARNING));
+        $this->assertSame('E_COMPILE_WARNING', ErrorHandler::getErrorType(\E_COMPILE_WARNING));
+        $this->assertSame('E_CORE_WARNING', ErrorHandler::getErrorType(\E_CORE_WARNING));
+
+        $this->assertSame('E_USER_ERROR', ErrorHandler::getErrorType(\E_USER_ERROR));
+        $this->assertSame('E_RECOVERABLE_ERROR', ErrorHandler::getErrorType(\E_RECOVERABLE_ERROR));
+
+        $this->assertSame('E_COMPILE_ERROR', ErrorHandler::getErrorType(\E_COMPILE_ERROR));
+        $this->assertSame('E_PARSE', ErrorHandler::getErrorType(\E_PARSE));
+        $this->assertSame('E_ERROR', ErrorHandler::getErrorType(\E_ERROR));
+        $this->assertSame('E_CORE_ERROR', ErrorHandler::getErrorType(\E_CORE_ERROR));
+
+        $this->assertSame('UNKNOWN', ErrorHandler::getErrorType('derp'));
+    }
+
+    public function testErrorSeverityDescription()
+    {
+        $this->assertSame('Deprecated', ErrorHandler::getErrorDescription(\E_DEPRECATED));
+        $this->assertSame('User Deprecated', ErrorHandler::getErrorDescription(\E_USER_DEPRECATED));
+
+        $this->assertSame('Notice', ErrorHandler::getErrorDescription(\E_NOTICE));
+        $this->assertSame('User Notice', ErrorHandler::getErrorDescription(\E_USER_NOTICE));
+        $this->assertSame('Runtime Notice', ErrorHandler::getErrorDescription(\E_STRICT));
+
+        $this->assertSame('Warning', ErrorHandler::getErrorDescription(\E_WARNING));
+        $this->assertSame('User Warning', ErrorHandler::getErrorDescription(\E_USER_WARNING));
+        $this->assertSame('Compile Warning', ErrorHandler::getErrorDescription(\E_COMPILE_WARNING));
+        $this->assertSame('Core Warning', ErrorHandler::getErrorDescription(\E_CORE_WARNING));
+
+        $this->assertSame('User Error', ErrorHandler::getErrorDescription(\E_USER_ERROR));
+        $this->assertSame('Catchable Fatal Error', ErrorHandler::getErrorDescription(\E_RECOVERABLE_ERROR));
+
+        $this->assertSame('Compile Error', ErrorHandler::getErrorDescription(\E_COMPILE_ERROR));
+        $this->assertSame('Parse Error', ErrorHandler::getErrorDescription(\E_PARSE));
+        $this->assertSame('Error', ErrorHandler::getErrorDescription(\E_ERROR));
+        $this->assertSame('Core Error', ErrorHandler::getErrorDescription(\E_CORE_ERROR));
+
+        $this->assertSame('Exception', ErrorHandler::getErrorDescription('derp'));
     }
 }

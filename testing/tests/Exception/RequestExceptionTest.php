@@ -7,7 +7,6 @@
 
 namespace QL\Panthor\Exception;
 
-use Mockery;
 use PHPUnit_Framework_TestCase;
 
 class RequestExceptionTest extends PHPUnit_Framework_TestCase

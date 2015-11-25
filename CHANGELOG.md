@@ -15,9 +15,40 @@ Please note: This release has backwards compatibility breaks to remove links to 
 - DI: Remove `@clock` service.
 - Remove **ApacheAuthorizationHook**
     - This includes removal of `@slim.hook.apacheAuthorization` service.
+- **Error Handling**
+    - Removed **APIExceptionConfigurator**.
+    - Removed **ExceptionConfigurator**.
+    - Removed **FatalErrorHandler**.
+- **HTTP Problem**
+    - Remove usage of `ql/http-problem`, replaced by simple implementation in `QL\Panthor\HTTPProblem` namespace.
 
 ### Changed
-- **ApacheAuthorizationHeaderHook** is deprecated and will be removed in 3.0.
+- **Error Handling**
+    - Errors and exceptions are now handled by a single handler - `QL\Panthor\ErrorHandling\ErrorHandler`.
+      > This handler will turn errors into exceptions, which are routed through a list of **exception handlers**.
+      > Errors not thrown can be optionally logged, and allow application execution to continue.
+    - Exception handlers implement **ExceptionHandlerInterface**, and can determine whether they will handle an exception.
+      > If not handled by any handler, the exception will be rethrown to be handled by default PHP mechanisms.
+
+- **HTTP Problem**
+    - `QL\Panthor\HTTPProblem\HTTPProblem` replaces `QL\HttpProblem\HttpProblem`.
+
+### Added
+- **Error Handling**
+    - Added exception handlers:
+        - **BaseHandler**
+            - Should always be used, and attached last. This is the last defense from an unhandled exception, and all exceptions that reach this handler will be logged.
+        - **GenericHandler**
+        - **NullHandler**
+        - **HTTPProblemHandler**
+        - **RequestExceptionHandler**
+    - Added exception renderers:
+        - **HTMLRenderer**
+            - Passes error context to twig template, by default `error.html.twig` in template directory.
+        - **ProblemRenderer**
+            - Renders exceptions as http-problem, by default as json.
+    - Added **ProtectErrorHandlerMiddleware**
+        - This middleware is attached to Slim, and resets the error handler, since Slim 2.x forces its own handler when run.
 
 ## [2.2.0] - 2015-07-27
 

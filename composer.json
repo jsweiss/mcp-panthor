@@ -6,12 +6,7 @@
     "autoload": {
         "psr-4": { "QL\\Panthor\\": "src" }
     },
-    "config": {
-        "preferred-install": "dist"
-    },
-    "repositories": [
-        { "type": "composer", "url": "http://composer/" }
-    ],
+
     "require": {
         "php":                          ">=5.5.0",
 
@@ -28,10 +23,7 @@
 
         "psr/log": "*",
 
-        "ql/http-problem":  "~1.0",
         "ql/mcp-crypto":    "~2.0",
-
-        "symfony/debug":    "~2.6",
 
         "twig/twig": "*"
     }

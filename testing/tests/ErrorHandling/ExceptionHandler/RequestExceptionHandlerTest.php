@@ -1,0 +1,88 @@
+<?php
+/**
+ * @copyright ©2015 Quicken Loans Inc. All rights reserved. Trade Secret,
+ *    Confidential and Proprietary. Any dissemination outside of Quicken Loans
+ *    is strictly prohibited.
+ */
+
+namespace QL\Panthor\ErrorHandling\ExceptionHandler;
+
+use Exception as BaseException;
+use Mockery;
+use PHPUnit_Framework_TestCase;
+use QL\Panthor\ErrorHandling\ExceptionRendererInterface;
+use QL\Panthor\Exception\Exception;
+use QL\Panthor\Exception\NotFoundException;
+use QL\Panthor\Exception\RequestException;
+use QL\Panthor\Testing\MockeryAssistantTrait;
+
+class RequestExceptionHandlerTest extends PHPUnit_Framework_TestCase
+{
+    use MockeryAssistantTrait;
+
+    public function testCanHandleRequestException()
+    {
+        $renderer = Mockery::mock(ExceptionRendererInterface::CLASS);
+
+        $handler = new RequestExceptionHandler($renderer);
+
+        $handled = $handler->getHandledExceptions();
+        $this->assertCount(1, $handled);
+
+        $handled = $handled[0];
+
+        $this->assertNotInstanceOf($handled, new BaseException);
+        $this->assertNotInstanceOf($handled, new Exception);
+        $this->assertNotInstanceOf($handled, new NotFoundException);
+
+        $this->assertInstanceOf($handled, new RequestException);
+    }
+
+    public function testDoesNotHandleIfExceptionNotRequestException()
+    {
+        $renderer = Mockery::mock(ExceptionRendererInterface::CLASS);
+
+        $handler = new RequestExceptionHandler($renderer);
+
+        $this->assertFalse($handler->handle(new Exception));
+        $this->assertFalse($handler->handle(new NotFoundException));
+        $this->assertFalse($handler->handle(new BaseException));
+    }
+
+    public function testStatusAndContextPassedToRenderer()
+    {
+        $renderer = Mockery::mock(ExceptionRendererInterface::CLASS);
+        $this->spy($renderer, 'render', [410, $this->buildSpy('renderer')]);
+
+        $handler = new RequestExceptionHandler($renderer);
+
+        $ex = new RequestException('msg', 410);
+        $this->assertTrue($handler->handle($ex));
+
+        $context = $this->getSpy('renderer');
+        $context = $context();
+
+        $this->assertCount(4, $context);
+
+        $this->assertSame('msg', $context['message']);
+        $this->assertSame(410, $context['status']);
+        $this->assertSame('Exception', $context['severity']);
+        $this->assertSame($ex, $context['exception']);
+    }
+
+    public function testInvalidStatusIsResetTo400()
+    {
+        $renderer = Mockery::mock(ExceptionRendererInterface::CLASS);
+        $this->spy($renderer, 'render', [400, $this->buildSpy('renderer')]);
+
+        $handler = new RequestExceptionHandler($renderer);
+
+        $ex = new RequestException('msg');
+        $this->assertTrue($handler->handle($ex));
+
+        $context = $this->getSpy('renderer');
+        $context = $context();
+
+        $this->assertSame(400, $context['status']);
+    }
+}

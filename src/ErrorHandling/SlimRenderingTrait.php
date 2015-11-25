@@ -19,36 +19,77 @@ use Slim\Slim;
 trait SlimRenderingTrait
 {
     /**
+     * @type Slim|null
+     */
+    private $slim;
+
+    /**
+     * @type callable|null
+     */
+    private $headerSetter;
+
+    /**
      * @param Slim $slim
+     * @param callable|null $headerSetter
      *
      * @return void
      */
-    private function forceSendResponse(Slim $slim)
+    public function attachSlim(Slim $slim, callable $headerSetter = null)
     {
-        list($status, $headers, $body) = $slim->response()->finalize();
+        $this->slim = $slim;
+        $this->headerSetter = $headerSetter;
+    }
 
-        $header = $this->headerSetter;
+    /**
+     * @param int $status
+     * @param string $body
+     * @param string[] $additionalHeaders
+     *
+     * @return void
+     */
+    private function renderResponse($status = 500, $body = '', array $additionalHeaders = [])
+    {
+        $httpVersion = '1.1';
+        $httpStatus = Response::getMessageForCode($status) ?: 500;
+
+        $setHeader = is_callable($this->headerSetter) ? $this->headerSetter : '\header';
+
+        if ($this->slim) {
+            $response = $this->slim->response();
+            $response->setBody($body);
+            $response->setStatus($status);
+
+            foreach ($additionalHeaders as $key => $value) {
+                $response->headers->set($key, $value);
+            }
+
+            list($httpStatus, $httpHeaders, $body) = $response->finalize();
+            $httpVersion = $this->slim->config('http.version');
+
+        } else {
+            $httpHeaders = $additionalHeaders;
+            http_response_code($status);
+        }
 
         if (headers_sent() === false) {
 
-            //Send status
-            $header(sprintf('HTTP/%s %s', $slim->config('http.version'), Response::getMessageForCode($status)));
+            // Send status
+            $setHeader(sprintf('HTTP/%s %s', $httpVersion, $httpStatus));
 
-            // send headers
-            foreach ($headers as $name => $value) {
+            // Send headers
+            foreach ($httpHeaders as $name => $value) {
                 $hValues = explode("\n", $value);
                 foreach ($hValues as $hVal) {
-                    $header(sprintf('%s: %s', $name, $hVal), false);
+                    $setHeader(sprintf('%s: %s', $name, $hVal), false);
                 }
             }
         }
 
         // do not set body for HEAD requests
-        if ($slim->request->isHead()) {
+        if ($this->slim && $this->slim->request()->isHead()) {
             return;
         }
 
         echo $body;
-        exit();
     }
 }
