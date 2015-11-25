@@ -1,0 +1,73 @@
+<?php
+/**
+ * @copyright ©2015 Quicken Loans Inc. All rights reserved. Trade Secret,
+ *    Confidential and Proprietary. Any dissemination outside of Quicken Loans
+ *    is strictly prohibited.
+ */
+
+namespace QL\Panthor\HTTPProblem\Renderer;
+
+use PHPUnit_Framework_TestCase;
+use QL\Panthor\HTTPProblem\HTTPProblem;
+
+class JSONRendererTest extends PHPUnit_Framework_TestCase
+{
+    public function testOptionalPropertiesNotRendered()
+    {
+        $expectedStatus = 500;
+        $expectedHeaders = [
+            'Content-Type' => 'application/problem+json'
+        ];
+
+        $expectedBody = <<<JSON
+{
+    "status": 500,
+    "title": "Internal Server Error",
+    "detail": "Error ahoy!"
+}
+JSON;
+
+        $problem = new HTTPProblem(500, 'Error ahoy!');
+
+        $renderer = new JSONRenderer;
+        $status = $renderer->status($problem);
+        $headers = $renderer->headers($problem);
+        $body = $renderer->body($problem);
+
+        $this->assertSame(500, $status);
+        $this->assertSame($expectedHeaders, $headers);
+        $this->assertSame($expectedBody, $body);
+    }
+
+    public function testRenderingFullProblem()
+    {
+        $expectedBody = <<<JSON
+{
+    "status": 500,
+    "title": "Application error code 5021",
+    "type": "http://example/problem1.html",
+    "detail": "Major Tom, are you receiving me?",
+    "instance": "http://example/issue/12345.html",
+    "ext1": "data1",
+    "ext2": "data2",
+    "ext3": "data3"
+}
+JSON;
+
+        $problem = new HTTPProblem(500, 'Major Tom, are you receiving me?', [
+            'ext1' => 'data1',
+            'ext2' => 'data2',
+            'ext3' => 'data3',
+        ]);
+
+        $problem
+            ->withTitle('Application error code 5021')
+            ->withType('http://example/problem1.html')
+            ->withInstance('http://example/issue/12345.html');
+
+        $renderer = new JSONRenderer;
+        $body = $renderer->body($problem);
+
+        $this->assertSame($expectedBody, $body);
+    }
+}
