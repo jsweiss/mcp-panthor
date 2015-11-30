@@ -23,6 +23,8 @@ Please note: This release has backwards compatibility breaks to remove links to 
     - Remove usage of `ql/http-problem`, replaced by simple implementation in `QL\Panthor\HTTPProblem` namespace.
 - **Encryption**
     - Remove `QL\Panthor\CookieEncryption\AESCookieEncryption`.
+    - Remove `QL\Panthor\CookieEncryption\TRPCookieEncryption`.
+        - Please see **TRPCookieEncryption** in `ql/panthor-plugins`.
 
 ### Changed
 - **Error Handling**

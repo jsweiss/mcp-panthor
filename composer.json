@@ -10,6 +10,8 @@
     "require": {
         "php":                          ">=5.5",
 
+        "psr/log": "*",
+
         "slim/slim":                    "~2.6",
 
         "symfony/config":               "~2.6",
@@ -20,10 +22,6 @@
         "mockery/mockery": "*",
         "phpunit/phpunit": "4.*",
         "phpunit/php-invoker": "*",
-
-        "psr/log": "*",
-
-        "ql/mcp-crypto":    "~2.0",
 
         "twig/twig": "*"
     }

@@ -155,15 +155,8 @@ services:
     ############################################################################
 
     panthor.cookie.encryption:
-        class: 'QL\Panthor\Http\CookieEncryption\TRPCookieEncryption'
-        arguments: ['@panthor.encryption.trp']
-
-    panthor.encryption.trp:
-        class: 'MCP\Crypto\Package\TamperResistantPackage'
-        arguments: ['@panthor.encryption.factory', '%cookie.encryption.secret%']
-
-    panthor.encryption.factory:
-        class: 'MCP\Crypto\Primitive\Factory'
+        class: 'QL\Panthor\Http\CookieEncryptionInterface'
+        arguments: ['%cookie.encryption.secret%']
 
     ############################################################################
     # Error Handling
