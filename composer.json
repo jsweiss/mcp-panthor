@@ -8,9 +8,9 @@
     },
 
     "require": {
-        "php":                          ">=5.5.0",
+        "php":                          ">=5.5",
 
-        "slim/slim":                    "~2.4",
+        "slim/slim":                    "~2.6",
 
         "symfony/config":               "~2.6",
         "symfony/dependency-injection": "^2.6.3",
