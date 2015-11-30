@@ -82,6 +82,7 @@ services:
     # %debug%
     # %routes%
     # %slim.hooks%
+    # %cookie.unencrypted%
     #
     ############################################################################
 
@@ -150,17 +151,12 @@ services:
     # Required Parameters:
     #
     # %cookie.encryption.secret%
-    # %cookie.unencrypted%
     #
     ############################################################################
 
     panthor.cookie.encryption:
-        class: 'QL\Panthor\Http\CookieEncryption\AESCookieEncryption'
-        arguments: ['@panthor.encryption.aes']
-
-    panthor.encryption.aes:
-        class: 'MCP\Crypto\Package\AESPackage'
-        arguments: ['@panthor.encryption.factory', '%cookie.encryption.secret%']
+        class: 'QL\Panthor\Http\CookieEncryption\TRPCookieEncryption'
+        arguments: ['@panthor.encryption.trp']
 
     panthor.encryption.trp:
         class: 'MCP\Crypto\Package\TamperResistantPackage'
