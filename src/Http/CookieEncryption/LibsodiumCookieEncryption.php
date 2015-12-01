@@ -42,7 +42,7 @@ class LibsodiumCookieEncryption implements CookieEncryptionInterface
             return null;
         }
 
-        return $this->safeEncode($encrypted);
+        return $this->uriSafeEncode($encrypted);
     }
 
     /**
@@ -50,7 +50,7 @@ class LibsodiumCookieEncryption implements CookieEncryptionInterface
      */
     public function decrypt($encrypted)
     {
-        $payload = $this->safeDecode($encrypted);
+        $payload = $this->uriSafeDecode($encrypted);
         if (!$payload) {
             return null;
         }
@@ -69,7 +69,7 @@ class LibsodiumCookieEncryption implements CookieEncryptionInterface
      *
      * @return string|null
      */
-    private function safeEncode($message)
+    private function uriSafeEncode($message)
     {
         $encoded = base64_encode($message);
         $uriSafe = str_replace(['+', '/'], ['-', '_'], $encoded);
@@ -82,7 +82,7 @@ class LibsodiumCookieEncryption implements CookieEncryptionInterface
      *
      * @return string|null
      */
-    private function safeDecode($message)
+    private function uriSafeDecode($message)
     {
         $message = str_replace(['-', '_'], ['+', '/'], $message);
 
