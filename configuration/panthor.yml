@@ -156,6 +156,10 @@ services:
 
     panthor.cookie.encryption:
         class: 'QL\Panthor\Http\CookieEncryptionInterface'
+        arguments: ['@panthor.libsodium.encryption']
+
+    panthor.libsodium.encryption:
+        class: 'QL\Panthor\Encryption\LibsodiumSymmetricCrypto'
         arguments: ['%cookie.encryption.secret%']
 
     ############################################################################
