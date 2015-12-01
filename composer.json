@@ -8,11 +8,9 @@
     },
 
     "require": {
-        "php":                          ">=5.5",
-
-        "psr/log": "*",
-
-        "slim/slim":                    "~2.6",
+        "php":       ">=5.5",
+        "psr/log":   "*",
+        "slim/slim": "~2.6",
 
         "symfony/config":               "~2.6",
         "symfony/dependency-injection": "^2.6.3",
@@ -22,6 +20,9 @@
         "mockery/mockery": "*",
         "phpunit/phpunit": "4.*",
         "phpunit/php-invoker": "*",
+
+        "ext-libsodium": "~1.0",
+        "paragonie/random_compat": "~1.1",
 
         "twig/twig": "*"
     }
