@@ -1,7 +1,7 @@
 {
     "name": "ql/panthor",
-    "description": "Symfony + Slim = Panthor",
-    "license": "proprietary",
+    "description": "A thin microframework built on Slim and Symfony",
+    "license": "MIT",
 
     "autoload": {
         "psr-4": { "QL\\Panthor\\": "src" }
