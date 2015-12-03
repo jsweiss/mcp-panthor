@@ -8,6 +8,7 @@
 namespace QL\Panthor\Utility;
 
 use PHPUnit_Framework_TestCase;
+use QL\Panthor\Testing\ExtendedOpaqueProperty;
 use ReflectionClass;
 
 class OpaquePropertyTest extends PHPUnit_Framework_TestCase
@@ -132,8 +133,4 @@ Of the past that controls you
         $prop->setAccessible(true);
         $prop->setValue($noise);
     }
-}
-
-class ExtendedOpaqueProperty extends OpaqueProperty {
-    protected static $noise;
 }
