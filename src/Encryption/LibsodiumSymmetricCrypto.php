@@ -7,8 +7,9 @@
 
 namespace QL\Panthor\Encryption;
 
-use Encryption;
 use QL\Panthor\Exception\CryptoException;
+use QL\Panthor\Utility\ByteString;
+use QL\Panthor\Utility\OpaqueProperty;
 
 /**
  * This uses libsodium encryption from PECL Libsodium ~1.0
@@ -23,7 +24,7 @@ class LibsodiumSymmetricCrypto
     // 2 * 64 = 128 hexadecimal characters
     const REGEX_FULL_SECRET = '^[A-Fa-f0-9]{128}$';
 
-    const FQDN_LIBSODIUM_EXT = 'libsodium';
+    const LIBSODIUM_EXT = 'libsodium';
     const FQDN_LIBSODIUM_VERSION = '\Sodium\version_string';
     const FQDN_RANDOMBYTES = '\random_bytes';
 
@@ -51,25 +52,27 @@ class LibsodiumSymmetricCrypto
     const ERR_DECRYPT = 'An error occured while decrypting data: %s';
 
     /**
-     * Misc errors
+     * @type OpaqueProperty
      */
-    const ERR_STRLEN = 'Could not determine byte size of string.';
+    private $cryptoSecret;
 
     /**
-     * 128-character hexademical string.
-     * 64 - box crypto key
-     * 64 - auth key
+     * @type OpaqueProperty
+     */
+    private $authSecret;
+
+    /**
+     * $secret should each be a 128-character hexademical value.
      *
-     * @type string
-     */
-    private $secret;
-
-    /**
+     * This will be broken into 2 64-character parts: crypto secret and auth secret.
+     *
+     * While in memory these are stored as OpaqueProperty, to obscure from debug code or stacktraces.
+     *
      * @param string $secret
      */
     public function __construct($secret)
     {
-        if (!extension_loaded(self::FQDN_LIBSODIUM_EXT)) {
+        if (!extension_loaded(self::LIBSODIUM_EXT)) {
             throw new CryptoException(self::ERR_LIBSODIUM);
         }
 
@@ -85,7 +88,8 @@ class LibsodiumSymmetricCrypto
             throw new CryptoException(self::ERR_INVALID_SECRET);
         }
 
-        $this->secret = $secret;
+        $this->cryptoSecret = new OpaqueProperty(\Sodium\hex2bin(ByteString::substr($secret, 0, 64)));
+        $this->authSecret = new OpaqueProperty(\Sodium\hex2bin(ByteString::substr($secret, 64)));
     }
 
     /**
@@ -97,32 +101,22 @@ class LibsodiumSymmetricCrypto
             throw new CryptoException(sprintf(self::ERR_CANNOT_ENCRYPT, gettype($unencrypted)));
         }
 
-        $encryptionKey = \Sodium\hex2bin($this->substr($this->secret, 0, 64));
-        $authKey = \Sodium\hex2bin($this->substr($this->secret, 64, 64));
-
         // Generate 24 byte nonce
         $nonce = \random_bytes(self::NONCE_SIZE_BYTES);
 
         // Encrypt payload
         try {
-            $encrypted = \Sodium\crypto_secretbox($unencrypted, $nonce, $encryptionKey);
+            $encrypted = \Sodium\crypto_secretbox($unencrypted, $nonce, $this->cryptoSecret->getValue());
         } catch (Exception $ex) {
-            \Sodium\memzero($encryptionKey);
-            \Sodium\memzero($authKey);
             throw new CryptoException(sprintf(self::ERR_ENCRYPT, $ex->getMessage()), $ex->getCode(), $ex);
         }
 
         // Calculate MAC
         try {
-            $mac = \Sodium\crypto_auth($nonce . $encrypted, $authKey);
+            $mac = \Sodium\crypto_auth($nonce . $encrypted, $this->authSecret->getValue());
         } catch (Exception $ex) {
-            \Sodium\memzero($encryptionKey);
-            \Sodium\memzero($authKey);
             throw new CryptoException(sprintf(self::ERR_ENCODE, $ex->getMessage()), $ex->getCode(), $ex);
         }
-
-        \Sodium\memzero($encryptionKey);
-        \Sodium\memzero($authKey);
 
         // Return appended binary string
         return $nonce . $mac . $encrypted;
@@ -137,99 +131,34 @@ class LibsodiumSymmetricCrypto
             throw new CryptoException(sprintf(self::ERR_CANNOT_DECRYPT, gettype($encrypted)));
         }
 
-        $encryptionKey = \Sodium\hex2bin($this->substr($this->secret, 0, 64));
-        $authKey = \Sodium\hex2bin($this->substr($this->secret, 64, 64));
-
         // Sanity check size of payload is larger than MAC + NONCE
-        // Note: we do not care about character count, only raw byte size so we use strlen instead of mb_strlen
-        if ($this->strlen($encrypted) < self::NONCE_SIZE_BYTES + \Sodium\CRYPTO_AUTH_BYTES) {
+        if (ByteString::strlen($encrypted) < self::NONCE_SIZE_BYTES + \Sodium\CRYPTO_AUTH_BYTES) {
             throw new CryptoException(self::ERR_SIZE);
         }
 
         // Split into nonce, mac, and encrypted payload
-        $nonce = $this->substr($encrypted, 0, self::NONCE_SIZE_BYTES);
-        $mac = $this->substr($encrypted, self::NONCE_SIZE_BYTES, \Sodium\CRYPTO_AUTH_BYTES);
-        $encrypted = $this->substr($encrypted, self::NONCE_SIZE_BYTES + \Sodium\CRYPTO_AUTH_BYTES);
+        $nonce = ByteString::substr($encrypted, 0, self::NONCE_SIZE_BYTES);
+        $mac = ByteString::substr($encrypted, self::NONCE_SIZE_BYTES, \Sodium\CRYPTO_AUTH_BYTES);
+        $encrypted = ByteString::substr($encrypted, self::NONCE_SIZE_BYTES + \Sodium\CRYPTO_AUTH_BYTES);
 
         // Verify MAC
         try {
-            $isVerified = \Sodium\crypto_auth_verify($mac, $nonce . $encrypted, $authKey);
+            $isVerified = \Sodium\crypto_auth_verify($mac, $nonce . $encrypted, $this->authSecret->getValue());
         } catch (Exception $ex) {
-            \Sodium\memzero($encryptionKey);
-            \Sodium\memzero($authKey);
             throw new CryptoException(sprintf(self::ERR_DECODE_UNEXPECTED, $ex->getMessage()), $ex->getCode(), $ex);
         }
 
         if (!$isVerified) {
-            \Sodium\memzero($encryptionKey);
-            \Sodium\memzero($authKey);
             throw new CryptoException(self::ERR_DECODE);
         }
 
         // Decrypt authenticated payload
         try {
-            $unencrypted = \Sodium\crypto_secretbox_open($encrypted, $nonce, $encryptionKey);
+            $unencrypted = \Sodium\crypto_secretbox_open($encrypted, $nonce, $this->cryptoSecret->getValue());
         } catch (Exception $ex) {
-            \Sodium\memzero($encryptionKey);
-            \Sodium\memzero($authKey);
             throw new CryptoException(sprintf(self::ERR_DECRYPT, $ex->getMessage()), $ex->getCode(), $ex);
         }
 
-        \Sodium\memzero($encryptionKey);
-        \Sodium\memzero($authKey);
-
         return $unencrypted;
-    }
-
-    /**
-     * Proxy for strlen, to protect if strlen is overridden by mb_strlen
-     *
-     * @param mixed $input
-     *
-     * @return int
-     */
-    private function strlen($input)
-    {
-        if (!is_string($input)) {
-            return 0;
-        }
-
-        if (function_exists('\mb_strlen')) {
-            $len = \mb_strlen($input, '8bit');
-
-        } else {
-            $len = \strlen($input);
-        }
-
-        if (is_int($len)) {
-            return $len;
-        }
-
-        throw new CryptoException(self::ERR_STRLEN);
-    }
-
-    /**
-     * Proxy for substr, to protect if substr is overridden by mb_substr
-     *
-     * @param mixed $input
-     * @param int $start
-     * @param int $length
-     *
-     * @return int
-     */
-    private function substr($input, $start, $length = null)
-    {
-        if (!is_string($input)) {
-            return '';
-        }
-
-        if (function_exists('\mb_strcut')) {
-            $cut = \mb_strcut($input, $start, $length, '8bit');
-
-        } else {
-            $cut = \substr($input, $start, $length);
-        }
-
-        return $cut;
     }
 }
