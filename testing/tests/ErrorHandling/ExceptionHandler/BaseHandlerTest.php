@@ -95,7 +95,7 @@ class BaseHandlerTest extends PHPUnit_Framework_TestCase
         $this->assertSame('E_ERROR', $msg['context']['errorType']);
         $this->assertSame('ErrorException', $msg['context']['errorClass']);
 
-        $this->assertContains('/panthor/testing/tests/ErrorHandling/ExceptionHandler/BaseHandlerTest.php:86', $msg['context']['errorStacktrace']);
+        $this->assertContains('/testing/tests/ErrorHandling/ExceptionHandler/BaseHandlerTest.php:86', $msg['context']['errorStacktrace']);
     }
 
     public function testPreviousExceptionIsLoggedInStacktrace()
@@ -118,10 +118,10 @@ class BaseHandlerTest extends PHPUnit_Framework_TestCase
         $this->assertSame('QL\Panthor\Exception\Exception', $msg['context']['errorType']);
         $this->assertSame('QL\Panthor\Exception\Exception', $msg['context']['errorClass']);
 
-        $this->assertContains('/panthor/testing/tests/ErrorHandling/ExceptionHandler/BaseHandlerTest.php:108', $msg['context']['errorStacktrace']);
+        $this->assertContains('/testing/tests/ErrorHandling/ExceptionHandler/BaseHandlerTest.php:108', $msg['context']['errorStacktrace']);
         $this->assertContains('prev exception', $msg['context']['errorStacktrace']);
 
-        $this->assertContains('/panthor/testing/tests/ErrorHandling/ExceptionHandler/BaseHandlerTest.php:109', $msg['context']['errorStacktrace']);
+        $this->assertContains('/testing/tests/ErrorHandling/ExceptionHandler/BaseHandlerTest.php:109', $msg['context']['errorStacktrace']);
         $this->assertContains('ex msg', $msg['context']['errorStacktrace']);
     }
 }
