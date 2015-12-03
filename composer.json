@@ -1,7 +1,14 @@
 {
     "name": "ql/panthor",
     "description": "A thin microframework built on Slim and Symfony",
+
+    "type": "library",
+    "keywords": ["microframework"],
     "license": "MIT",
+
+    "authors": [
+        { "name": "Steve Kluck", "email": "stevekluck@quickenloans.com" }
+    ],
 
     "autoload": {
         "psr-4": { "QL\\Panthor\\": "src" }
@@ -16,6 +23,7 @@
         "symfony/dependency-injection": "^2.6.3",
         "symfony/yaml":                 "~2.6"
     },
+
     "require-dev": {
         "mockery/mockery": "*",
         "phpunit/phpunit": "4.*",
