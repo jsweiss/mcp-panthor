@@ -8,6 +8,9 @@ parameters:
     debug: false
     request.body.service: 'request.body'
 
+    date.timezone: 'America/Detroit'
+    panthor.internal.timezone: 'UTC'
+
     # twig defaults
     twig.debug: true
     twig.template.dir: 'templates'
@@ -57,6 +60,7 @@ services:
 
     url:                            {parent: panthor.url}
     json:                           {parent: panthor.json}
+    clock:                          {parent: panthor.clock}
     logger:                         {parent: panthor.logger}
 
     error.handler:                  {parent: panthor.error_handling.handler}
@@ -252,6 +256,11 @@ services:
 
     ############################################################################
     # Panthor Utilities
+    #
+    # Required parameters:
+    #
+    # %panthor.internal.timezone%
+    #
     ############################################################################
 
     panthor.url:
@@ -262,6 +271,10 @@ services:
             - '@slim.response'
             - '@slim.halt'
 
+    panthor.clock:
+        class: 'QL\MCP\Common\Time\Clock'
+        arguments: ['now', %panthor.internal.timezone%]
+
     panthor.json:
         class: 'QL\Panthor\Utility\Json'
 
@@ -271,6 +284,7 @@ services:
     # Required parameters:
     #
     # %debug%
+    # %date.timezone%
     #
     # %twig.debug%
     # %twig.cache.dir%
@@ -282,6 +296,8 @@ services:
         class: 'QL\Panthor\Twig\TwigExtension'
         arguments:
             - '@panthor.url'
+            - '@panthor.clock'
+            - '%date.timezone%'
             - '%debug%'
 
     panthor.twig.configurator:

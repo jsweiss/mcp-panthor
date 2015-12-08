@@ -9,11 +9,6 @@ Please note: This release has backwards compatibility breaks to remove links to 
 ### Removed
 - Remove `QL\Panthor\Slim\McpLoggerHook`
     - Please see **MCPLoggerHook** in `ql/panthor-plugins`.
-- Remove `timepoint` filter from **TwigExtension**.
-    - Please see **TwigExtension** in `ql/panthor-plugins`.
-- Remove `timepoint` function from **TwigExtension**.
-    - Please see **TwigExtension** in `ql/panthor-plugins`.
-- DI: Remove `@clock` service.
 - Remove **ApacheAuthorizationHook**
     - This includes removal of `@slim.hook.apacheAuthorization` service.
 - **Error Handling**
