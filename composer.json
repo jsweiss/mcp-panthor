@@ -1,5 +1,5 @@
 {
-    "name": "ql/panthor",
+    "name": "ql/mcp-panthor",
     "description": "A thin microframework built on Slim and Symfony",
 
     "type": "library",
