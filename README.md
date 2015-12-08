@@ -9,8 +9,8 @@ deployment settings and scripts using Symfony Dependency Injection and Slim.
 - `Symfony/Config` - Cascading configuration to handle merging multiple config files.
 - `Symfony/DependencyInjection` - A robust and flexible dependency injection container.
 
-Panthor `1.*` and `2.*` are compatible with Slim `2.*` and Symfony `2.*`. Panthor `3.*` will require
-Slim `3.*` and Symfony `3.*`.
+- Panthor `1.*` and `2.*` are compatible with Slim `2.*` and Symfony `2.*`.
+- Panthor `3.*` will require Slim `3.*` and Symfony `3.*`.
 
 ### Starting a new application?
 
@@ -46,5 +46,6 @@ Library / Extension              | Required by
 -------------------------------- | -----------
 psr/log                          | `Testing\Logger`, `ErrorHandling\`
 twig/twig                        | `Twig\`
+ql/mcp-common                    | `Encryption\`, `Twig\`
 paragonie/random_compat or PHP7  | `Encryption\`
 PECL Libsodium                   | `Encryption\`, `Http\EncryptedCookies\`
