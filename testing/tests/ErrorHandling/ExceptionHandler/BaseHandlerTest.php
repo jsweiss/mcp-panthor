@@ -11,12 +11,12 @@ use ErrorException;
 use Exception as BaseException;
 use Mockery;
 use PHPUnit_Framework_TestCase;
+use QL\MCP\Common\Testing\MemoryLogger;
 use QL\Panthor\ErrorHandling\ExceptionRendererInterface;
 use QL\Panthor\Exception\Exception;
 use QL\Panthor\Exception\NotFoundException;
 use QL\Panthor\Exception\RequestException;
 use QL\Panthor\Testing\MockeryAssistantTrait;
-use QL\Panthor\Testing\TestLogger;
 
 class BaseHandlerTest extends PHPUnit_Framework_TestCase
 {
@@ -78,7 +78,7 @@ class BaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testExceptionIsLogged()
     {
-        $logger = new TestLogger;
+        $logger = new MemoryLogger;
         $renderer = Mockery::mock(ExceptionRendererInterface::CLASS, ['render' => null]);
 
         $handler = new BaseHandler($renderer, $logger);
@@ -100,7 +100,7 @@ class BaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testPreviousExceptionIsLoggedInStacktrace()
     {
-        $logger = new TestLogger;
+        $logger = new MemoryLogger;
         $renderer = Mockery::mock(ExceptionRendererInterface::CLASS, ['render' => null]);
 
         $handler = new BaseHandler($renderer, $logger);

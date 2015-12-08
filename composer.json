@@ -14,10 +14,16 @@
         "psr-4": { "QL\\Panthor\\": "src" }
     },
 
+    "archive": {
+        "exclude": ["/testing", "/phpunit.xml.dist"]
+    },
+
     "require": {
         "php":       ">=5.5",
-        "psr/log":   "*",
-        "slim/slim": "~2.6",
+
+        "ql/mcp-common": "~1.0",
+        "psr/log":       "*",
+        "slim/slim":     "~2.6",
 
         "symfony/config":               "~2.6",
         "symfony/dependency-injection": "^2.6.3",
@@ -25,11 +31,11 @@
     },
 
     "require-dev": {
-        "mockery/mockery": "*",
-        "phpunit/phpunit": "4.*",
-        "phpunit/php-invoker": "*",
+        "mockery/mockery":      "*",
+        "phpunit/phpunit":      "4.*",
+        "phpunit/php-invoker":  "*",
 
-        "ext-libsodium": "~1.0",
+        "ext-libsodium":           "~1.0",
         "paragonie/random_compat": "~1.1",
 
         "twig/twig": "*"

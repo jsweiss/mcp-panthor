@@ -7,9 +7,9 @@
 
 namespace QL\Panthor\Encryption;
 
+use QL\MCP\Common\OpaqueProperty;
+use QL\MCP\Common\Utility\ByteString;
 use QL\Panthor\Exception\CryptoException;
-use QL\Panthor\Utility\ByteString;
-use QL\Panthor\Utility\OpaqueProperty;
 
 /**
  * This uses libsodium encryption from PECL Libsodium ~1.0

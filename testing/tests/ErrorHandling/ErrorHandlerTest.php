@@ -10,7 +10,7 @@ namespace QL\Panthor\ErrorHandling;
 use ErrorException;
 use Mockery;
 use PHPUnit_Framework_TestCase;
-use QL\Panthor\Testing\TestLogger;
+use QL\MCP\Common\Testing\MemoryLogger;
 use QL\Panthor\Exception\Exception;
 use QL\Panthor\Exception\NotFoundException;
 use QL\Panthor\Exception\RequestException;
@@ -113,7 +113,7 @@ class ErrorHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testLoggableErrorIsLoggedIfNotThrown()
     {
-        $logger = new TestLogger;
+        $logger = new MemoryLogger;
         $handler = new ErrorHandler($logger);
         $handler->setThrownErrors(\E_NOTICE);
         $handler->setLoggedErrors(\E_DEPRECATED);

@@ -46,5 +46,5 @@ Library / Extension              | Required by
 -------------------------------- | -----------
 psr/log                          | `Testing\Logger`, `ErrorHandling\`
 twig/twig                        | `Twig\`
-paragonie/random_compat or PHP7  | `Encryption\`, `OpaqueProperty\`
+paragonie/random_compat or PHP7  | `Encryption\`
 PECL Libsodium                   | `Encryption\`, `Http\EncryptedCookies\`

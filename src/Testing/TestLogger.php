@@ -7,57 +7,16 @@
 
 namespace QL\Panthor\Testing;
 
-use Psr\Log\AbstractLogger;
+use QL\MCP\Common\Testing\MemoryLogger;
 
 /**
  * A logger that records messages into an easy to inspect public property.
  *
- * Usage:
+ * This class is deprecated and will be removed in the next major version.
  *
- * $logger = new TestLogger;
- *
- * $logger->info('message');
- * $logger->emergency('message 2', ['data' => 'testing']);
- *
- * var_dump($logger->messages);
- * [
- *     [
- *         'level' => 'info',
- *         'message' => 'message',
- *         'context' => []
- *     ],
- *     [
- *         'level' => 'emergency',
- *         'message' => 'message 2',
- *         'context' => ['data' => 'testing']
- *     ]
- * ]
- *
+ * @see QL\MCP\Common\Testing\MemoryLogger
+ * @deprecated
  */
-class TestLogger extends AbstractLogger
+class TestLogger extends MemoryLogger
 {
-    /**
-     * @type array
-     */
-    public $messages;
-
-    public function __construct()
-    {
-        $this->messages = [];
-    }
-
-    /**
-     * @param mixed $level
-     * @param string $message
-     * @param array $context
-     * @return null
-     */
-    public function log($level, $message, array $context = [])
-    {
-        $this->messages[] = [
-            'level' => $level,
-            'message' => $message,
-            'context' => $context
-        ];
-    }
 }
