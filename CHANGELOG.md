@@ -53,6 +53,15 @@ Please note: This release has backwards compatibility breaks to remove links to 
             - Renders exceptions as http-problem, by default as json.
     - Added **ProtectErrorHandlerMiddleware**
         - This middleware is attached to Slim, and resets the error handler, since Slim 2.x forces its own handler when run.
+- **Utilities**
+    - Added **OpaqueProperty**
+        - Sensitive secrets and passwords should be wrapped in OpaqueProperty while in memory, as this obscures values from debug output and stacktraces.
+    - Added **ByteString**
+        - ByteString has equivalents for `strlen` and `substr` for treating strings as bytes, and ignoring multibyte character encoding.
+        - Used by Crypto for safety.
+- **Crypto**
+    - Added LibsodiumSymmetricCrypto for libsodium-based authenticated symmetric encryption.
+    - This is used for cookie encryption, and is the only encryption protocol provided with this library.
 
 ## [2.2.0] - 2015-07-27
 
