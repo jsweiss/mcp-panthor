@@ -3,7 +3,7 @@
     "description": "A thin microframework built on Slim and Symfony",
 
     "type": "library",
-    "keywords": ["microframework"],
+    "keywords": [ "mcp", "quickenloans", "microframework" ],
     "license": "MIT",
 
     "authors": [
@@ -15,11 +15,11 @@
     },
 
     "archive": {
-        "exclude": ["/testing", "/phpunit.xml.dist"]
+        "exclude": [ "/testing", "/phpunit.xml.dist" ]
     },
 
     "require": {
-        "php":       ">=5.5",
+        "php": ">=5.5",
 
         "ql/mcp-common": "~1.0",
         "psr/log":       "*",
