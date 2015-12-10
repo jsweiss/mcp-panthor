@@ -11,6 +11,7 @@ use DateTime;
 use DateTimeZone;
 use Mockery;
 use PHPUnit_Framework_TestCase;
+use QL\MCP\Common\Time\Clock;
 use QL\MCP\Common\Time\TimePoint;
 use QL\Panthor\Utility\Url;
 use stdClass;
@@ -28,25 +29,25 @@ class TwigExtensionTest extends PHPUnit_Framework_TestCase
 
     public function testName()
     {
-        $ext = new TwigExtension($this->url, false);
+        $ext = new TwigExtension($this->url, $this->clock, 'America\Detroit', false);
         $this->assertSame('panthor', $ext->getName());
     }
 
     public function testIsDebugMode()
     {
-        $ext = new TwigExtension($this->url, true);
+        $ext = new TwigExtension($this->url, $this->clock, 'America\Detroit', true);
         $this->assertSame(true, $ext->isDebugMode());
     }
 
     public function testGetFunctionsDoesNotBlowUp()
     {
-        $ext = new TwigExtension($this->url, false);
+        $ext = new TwigExtension($this->url, $this->clock, 'America\Detroit', false);
         $this->assertInternalType('array', $ext->getFunctions());
     }
 
     public function testGetFiltersDoesNotBlowUp()
     {
-        $ext = new TwigExtension($this->url, false);
+        $ext = new TwigExtension($this->url, $this->clock, 'America\Detroit', false);
         $this->assertInternalType('array', $ext->getFilters());
     }
 
