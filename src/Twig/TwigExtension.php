@@ -64,6 +64,16 @@ class TwigExtension extends Twig_Extension
     /**
      * {@inheritdoc}
      */
+    public function getFilters()
+    {
+        return [
+            new Twig_SimpleFilter('timepoint', [$this, 'formatTimePoint']),
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getFunctions()
     {
         return [
