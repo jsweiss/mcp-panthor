@@ -103,7 +103,7 @@ to an environment, the matching file is found and merged into the general applic
 > Where all DI service definitions should be defined.
 >
 > Example:
-> ```
+> ```yaml
 > services:
 >     page.hello_world:
 >         class: 'TestApplication\TestController'
@@ -115,7 +115,7 @@ to an environment, the matching file is found and merged into the general applic
 > Where all routes should be defined.
 >
 > Example:
-> ```
+> ```yaml
 > parameters:
 >     routes:
 >         # Basic route

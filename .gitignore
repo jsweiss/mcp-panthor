@@ -8,5 +8,4 @@ phpunit.xml
 
 # package installation
 /composer.lock
-/node_modules/
 /vendor/

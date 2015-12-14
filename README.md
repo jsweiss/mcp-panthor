@@ -1,4 +1,4 @@
-## Panthor
+# MCP Panthor
 
 A thin PHP microframework built on Slim and Symfony.
 
@@ -12,12 +12,35 @@ applications, APIs, or both.
 - `Symfony/Config` - Cascading configuration to handle merging multiple config files.
 - `Symfony/DependencyInjection` - A robust and flexible dependency injection container.
 
-#### Compatibility
+## Table of Contents
 
-- Panthor `1.*` and `2.*` are compatible with Slim `2.*` and Symfony `2.*`.
-- Panthor `3.*` will require Slim `3.*` and Symfony `3.*`.
+- [Compatibility](#compatibility)
+- [Starting a new application?](#starting-a-new-application)
+    - [Installation](#installation)
+    - [Quick Start](#quick-start)
+- [Documentation](#documentation)
+- [Dependencies](#dependencies)
+    - [Optional Dependencies](#optional-dependencies)
 
-### Starting a new application?
+## Compatibility
+
+- **Panthor 1**
+    - Slim ~2.0
+    - Symfony ~2.0
+- **Panthor 2**
+    - Slim ~2.0
+    - Symfony ~2.0
+- Panthor 3 (roadmap)
+    - Slim ~3.0
+    - Symfony ~3.0
+
+## Starting a new application?
+
+#### Installation
+
+```
+composer require ql/mcp-panthor ~2.3
+```
 
 See the following repositories for example skeletons.
 
@@ -58,7 +81,7 @@ Never used Composer, Slim or Symfony before? Here are some resources:
 
 3. `config.yml` should import other config resources.
 
-    > ```
+    > ```yaml
     > imports:
     >     - resource: ../vendor/ql/mcp-panthor/configuration/panthor.yml
     >     - resource: di.yml
@@ -67,7 +90,7 @@ Never used Composer, Slim or Symfony before? Here are some resources:
 
 4. `di.yml` will contain service definitions for your application, such as controllers.
 
-    > ```
+    > ```yaml
     > services:
     >     # Reset slim response to not use encryption for cookies
     >     slim.response:
@@ -83,7 +106,7 @@ Never used Composer, Slim or Symfony before? Here are some resources:
 
     > Routes is simply another config parameter passed into the DI container. It maps a route name to a url and list of
     > services to call.
-    > ```
+    > ```yaml
     > parameters:
     >     routes:
     >         hello_world:
@@ -159,7 +182,7 @@ Now just visit `localhost` (or your preferred virtual host name) and your contro
 This quickstart leaves out many things such as **Twig Templating**, **Cookie Encryption**, and **Error Handling**.
 Check the documentation links below for further details.
 
-### Documentation
+## Documentation
 
 - [Application Structure](docs/APPLICATION_STRUCTURE.md)
   > Details on where code and configuration goes.
@@ -173,7 +196,7 @@ Check the documentation links below for further details.
 - [Web Server Configuration](docs/SERVER.md)
   > Example setups for nginx and apache.
 
-### Dependencies
+## Dependencies
 
 This library contains many convenience utilities and classes for your application. Some of this functionality requires
 other libraries, but because they are optional, they are not strict requirements.
@@ -187,7 +210,7 @@ symfony/yaml                     | `Bootstrap\`
 psr/log                          | `Testing\Logger`, `ErrorHandling\`
 ql/mcp-common                    | `Encryption\`, `Twig\`
 
-#### Optional Dependencies
+### Optional Dependencies
 
 Please take note of the following packages and include them in your composer `require` if you
 use the associated Panthor functionality.
