@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file. See [keepachangelog.com](http://keepachangelog.com)
 for reference.
 
-## [2.3.0] - 2015-??-??
+## [2.3.0] - 2015-12-15
 
 Please note: This release has backwards compatibility breaks to remove links to proprietary packages.
 

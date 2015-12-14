@@ -1,5 +1,11 @@
 ## Usage
 
+- [Back to Documentation](README.md)
+- [Application Structure](APPLICATION_STRUCTURE.md)
+- How To Use
+- [Error Handling](ERRORS.md)
+- [Web Server Configuration](SERVER.md)
+
 ### Controllers and middleware
 
 Routes must be given a "stack". This is a list of services retrieved from the service container that the framework
@@ -42,7 +48,8 @@ call_user_func($halt, 500, 'Internal Server Error');
 
 About `slim.not.found`:
 
-When invoked, this class will trigger Slim **Not Found**. It has the same behavior as `slim.halt` in that it halts further execution of the controller stack.
+When invoked, this class will trigger Slim **Not Found**. It has the same behavior as `slim.halt` in that it halts
+further execution of the controller stack.
 
 Example usage:
 ```php
