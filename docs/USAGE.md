@@ -18,7 +18,25 @@ controller or middleware when they are called.
 The interfaces `QL\Panthor\ControllerInterface` and `QL\Panthor\MiddlewareInterface` are provided for convenience that
 middleware and controllers may implement, but no type checks are performed.
 
-It is recommended applications import the panthor `di.yml` configuration file in their application `config.yml` file.
+
+#### Dependency Injection Configuration
+
+It is recommended applications import the panthor `panthor.yml` configuration file in their application `config.yml` file.
+
+Example `config.yml`:
+```yaml
+imports:
+    - resource: ../vendor/ql/mcp-panthor/configuration/panthor.yml
+    - resource: di.yml
+    - resource: routes.yml
+    - resource: file.yml # more imports
+    - resource: file2.yml # more imports
+```
+
+You may also copy this file to your application configuration and include that instead., as it may change
+between releases. While Panthor makes every opportunity to follow [semver](http://semver.org/), the configuration may
+not.
+
 
 This configuration provides many boilerplates services.
 

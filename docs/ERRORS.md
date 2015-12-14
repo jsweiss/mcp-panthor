@@ -6,154 +6,157 @@
 - Error Handling
 - [Web Server Configuration](SERVER.md)
 
-### Background
+### Table of Contents
+
+- [Background](#background)
+- [Usage](#usage)
+    - [Error Logging](#error-logging)
+    - [Customization](#customization)
+    - [Exception Handlers](#exception-handlers)
+- [Error Handling for APIs](#error-handling-for-apis)
+
+## Background
 
 Error handling in PHP sucks. "Errors" exhibit different behavior depending on their type.
 
-- **Exception Handler**
+See [QL\Panthor\ErrorHandling\ErrorHandler](../src/ErrorHandling/ErrorHandler.php)
 
-  > Handles exceptions thrown by userland or extensions code. Typically the php core does not throw exceptions.
+#### Errors (`E_WARN`, `E_NOTICE`, etc)
 
-- **Error Handler**
+Errors are thrown as `ErrorException` and optionally logged. Error levels to be thrown and logged can be
+separately customized.
 
-  > Handles non-super fatals (E_WARN, E_NOTICE, etc). While this catches most errors, not the most serious.
+#### Super Fatals (`E_ERROR`, `E_PARSE`)
 
-- **Shutdown Handler**
+Super fatals are turned into `ErrorException` and sent directly to the exception handler.
 
-  > The shutdown handler always runs when the PHP process closes, and a handler can be attached to detect whether a "super fatal" occured and can be re-routed to the error handler.
+#### Exceptions
 
-## Super fatals
+Exception are handled by the main error handler, which forwards them to a stack of **Exception Handlers** that can be
+attached to the ErrorHandler.
 
-See [QL\Panthor\ErrorHandling\FatalErrorHandler](../src/ErrorHandling/FatalErrorHandler.php)
+## Usage
 
-This class is very light, and its purpose is to **convert super fatals into exceptions**, and route them back into Slim to be handled by your error handler.
+**ErrorHandler** must be registered, and then attached to **Slim** to take over handling of **Errors** and
+**Not Founds**.
 
+The error handler has the following signature:
 ```php
-use QL\Panthor\ErrorHandling\FatalErrorHandler;
+namespace QL\Panthor\ErrorHandling;
 
-// Application
+use Exception;
+
+class ErrorHandler
+{
+    public function __construct(LoggerInterface $logger = null);
+
+    public function handleException(Exception $exception);
+    public function handleError($errno, $errstr, $errfile, $errline, array $errcontext = []);
+    public static function handleFatalError();
+}
+```
+**NullLogger** will be used if no logger is provided, as errors are logged when handled. You may build this handler
+yourself, or use the default service defined at `@error.handler` in the container.
+
+Example `index.php`:
+```php
+// Code to get di container as $container
+
+// Enable error handler first
+$handler = $container->get('error.handler');
+$handler->register();
+ini_set('display_errors', 0);
+
+// Fetch slim
 $app = $container->get('slim');
 
-# convert errors to exceptions
-FatalErrorHandler::register([$app, 'error']);
+// Attach error handler to Slim.
+$handler->attach($app);
 
+// Start app
 $app->run();
 ```
 
-## Error Handler
+### Error Logging
 
-See [QL\Panthor\ErrorHandling\ErrorHandler](../src/ErrorHandling/ErrorHandler.php)
+Errors that should be logged will be sent to the PSR-3 Logger defined at the service `@logger`. If you use Syslog,
+Splunk, LogEntries or some other logging service, be sure to customize this service so errors are properly logged.
 
-This handler is responsible for **logging exceptions** and routing them to the Exception dispatcher provided by `ql/exception-toolkit`.
+### Customization
 
-It also acts as a **slim hook**, so it can be attached to slim and errors that occur within the Slim context are routed to the handler.
+`ErrorHandler::register(int $handledErrors = \E_ALL)`
+> This method will register the handler for Errors, Exceptions, and Super Fatals (on shutdown).
+> The type of errors to handle can be customized by the `$handledErrors` bitmask.
+>
+> Default value: `\E_ALL`
 
-```php
-// Note, this code is for example purposes only, as it can be configured entirely from your DI configuration.
+`ErrorHandler::setThrownErrors(int $thrownTypes)`
+> Customize the types of errors that ErrorHandler will rethrown as `ErrorException`. For example this can be used to
+> silence `E_STRICT` or `E_DEPRECATED` errors.
+>
+> Default value: `\E_ALL & ~\E_DEPRECATED & ~\E_USER_DEPRECATED`
 
-use Exception;
-use QL\Panthor\ErrorHandling\ErrorHandler;
+`ErrorHandler::setLoggedErrors(int $loggedErrors)`
+> Customize the types of errors logged to the PSR-3 Logger.
+>
+> Default value: `\E_ALL`
 
-$handler = new ErrorHandler($logger);
+`ErrorHandler->handleNotFound()`
+> Convenience method to throw `QL\Panthor\Exception\NotFoundException`
 
-// Attach to slim, to automatically handle errors.
-$handler($slim);
+### Exception Handlers
 
-// Exceptions are processed through the handleException method
-$handler->handleException(new Exception);
-```
+Exceptions are routed through a list of exception handlers that act as a stack. We use a stack of separate handlers
+so different types of exceptions can be handled differently. For example, we may want to handle **NotFoundException**
+differently from **HTTPProblemException** or `\ErrorException`.
 
-## Exception Configurator
+The exception will be sent to the handler that responds that it can handle the exception class type. If the handler
+responds with `true`, **ErrorHandler** stops processing the stack and assumes the exception was handled.
 
-- See [QL\Panthor\ErrorHandling\ExceptionConfigurator](../src/ErrorHandling/ExceptionConfigurator.php)
-- See [QL\Panthor\ErrorHandling\APIExceptionConfigurator](../src/ErrorHandling/APIExceptionConfigurator.php)
+Because of the way exceptions are processed through the stack, The **most specific handlers should be first
+in the stack**. Always have a generic `\Exception` handler last. This ensures the exception will always be handled.
+Otherwise the exception will be an **unhandled exception** and cause a *white screen of death*.
 
-By itself the error handler doesn't actually do anything. It must be configured.
-This is where the exception configurators come in. The are registered on the handler and tell the handler what to do.
-Different types of errors or exceptions can be handled differently.
+The default handler stack for panthor is as follows:
 
-**ExceptionConfigurator** handles the following situations:
+- `QL\Panthor\ErrorHandling\ExceptionHandler\NotFoundHandler`
 
-- `FatalErrorException` - Super fatals, the response must be rendered manually, since the Slim context has died.
-- `HttpProblemException` - Http Problem exceptions, for use by APIs.
-    - See [Draft RFC http problem](https://tools.ietf.org/html/draft-ietf-appsawg-http-problem-00)
-- `NotFoundException` - Not Found exceptions, when the Slim router fails to find a matching route.
-- Generic `Exception`
+    > Handles **NotFoundException**.
+    >
+    > By default this renders to the twig template at `$root/templates/error.html.twig`.
 
-A `TemplateInterface` must be provided to the configurator, as it renders an error page to the client. Except for `HttpProblemException`, which uses a JSON response.
+- `QL\Panthor\ErrorHandling\ExceptionHandler\HTTPProblemHandler`
 
-**APIExceptionConfigurator** handles the same exceptions, but converts all to **HttpProblem**, to be rendered out as a JSON response. It also handles the following:
+    > Handles **HTTPProblemException**.
+    >
+    > By default this renders as HTTP Problem JSON through **HTTPProblem JsonRenderer**.
 
-- `RequestException` - Client errors from **RequestBodyMiddleware**.
+- `QL\Panthor\ErrorHandling\ExceptionHandler\RequestExceptionHandler`
 
-## Custom Exception Configurators
+    > Handles **RequestException**.
+    >
+    > By default this renders errors from **RequestBodyMiddleware** as HTTP Problem JSON through **HTTPProblem JsonRenderer**.
 
-You can create your own configurator if you wish to customize how errors are handled. It is recommended you extend the original configurator instead, and override this method:
+- `QL\Panthor\ErrorHandling\ExceptionHandler\BaseHandler`
 
-```php
-/**
- * Extend this class and override this method to change the handlers for your application.
- *
- * @return void
- */
-protected function registerHandlers()
-{
-    // Default handlers
-    $this->register([$this, 'handleNotFoundException']);
-    $this->register([$this, 'handleHttpProblemException']);
-    $this->register([$this, 'handleSuperFatalException']);
-    $this->register([$this, 'handleBaseException']);
-}
-```
+    > Handles all exceptions.
+    >
+    > As this is the last line of defense before an unhandled exception, all exceptions that reach here will be logged.
+    > By default this renders to the twig template at `$root/templates/error.html.twig`.
 
-The following example shows how **NotFoundExceptions** can be handled differently in case your application has both an API and html pages.
+This list may be customized, or added to by changing di configuration for the error handling services.
 
-```php
-namespace MyApplication\Slim;
+## Error Handling for APIs
 
-use QL\HttpProblem\HttpProblemException;
-use QL\Panthor\ErrorHandling\ExceptionConfigurator as BaseConfigurator;
-use QL\Panthor\Exception\NotFoundException;
+By default, errors are rendered to html templates and only as JSON if **HTTP Problem** is specifically used.
+For a quick and dirty way to render all errors as json, **Change the `html_renderer` service** to render problems.
 
-class ExceptionConfigurator extends BaseConfigurator
-{
-    /**
-     * Replacement of default 404 handler to support api and html responses.
-     * {@inheritdoc}
-     */
-    public function handleNotFoundException(NotFoundException $exception)
-    {
-        if (isset($_SERVER['REQUEST_URI']) && substr($_SERVER['REQUEST_URI'], 0, 5) === '/api/') {
-            return $this->handleHttpProblemException(HttpProblemException::build(404, 'not-found'));
-        }
-
-        $this->renderTwigResponse($exception, 404);
-    }
-}
-```
-
-### Example DI Configuration
-
+In application `di.yml`:
 ```yaml
-slim.hook.errors:
-    class: 'QL\Panthor\ErrorHandling\ErrorHandler'
-    arguments: [@logger]
-    configurator: [@exception.configurator, 'attach']
-
-exception.configurator:
-    class: 'QL\Panthor\ErrorHandling\ExceptionConfigurator'
-    arguments: [@error.page.twig]
-
-logger:
-    'class': 'Psr\Log\NullLogger'
-
-error.page.twig:
-    parent: 'twig.template'
-    calls: [['setTemplate', ['error.twig']]]
-
-# If using mcp-logger, attach the mcp logger hook
-slim.hook.logger:
-    class: 'QL\Panthor\Slim\McpLoggerHook'
-    arguments: [@logger.mcp.factory]
-
+    # Change html renderer to always do http-problem
+    panthor.error_handling.html_renderer:
+        parent: 'panthor.error_handling.problem_renderer'
 ```
+
+If using this application in production, you should instead redefine the error handler service to make your error
+handling configuration explicit and clear.
