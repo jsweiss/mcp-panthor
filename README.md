@@ -4,8 +4,8 @@ A thin PHP microframework built on Slim and Symfony.
 
 Slim + Symfony = :revolving_hearts:
 
-Panthor is a skeleton application that provides sensible defaults with quick installation and
-deployment settings and scripts using Symfony Dependency Injection and Slim. It can be used for html
+Panthor is a skeleton application that provides sensible defaults and more structure. Utilities are provided to
+simplify caching and dependency injection using Symfony Dependency Injection and Slim. It can be used for html
 applications, APIs, or both.
 
 - `Slim/Slim` - The core microframework.
@@ -203,7 +203,7 @@ other libraries, but because they are optional, they are not strict requirements
 
 Library / Extension              | Used by
 -------------------------------- | -----------
-slim/slim                        |
+slim/slim                        | `Bootstrap\`
 symfony/config                   | `Bootstrap\`
 symfony/dependency-injection     | `Bootstrap\`
 symfony/yaml                     | `Bootstrap\`
