@@ -47,11 +47,7 @@ applications, APIs, or both.
 composer require ql/mcp-panthor ~2.3
 ```
 
-See the following repositories for example skeletons.
-
-For APIs, see [Panthor API](http://git/web-frameworks/panthor-api).
-
-For applications, see [Panthor Application](http://git/web-frameworks/panthor-app).
+See [Panthor Skeleton](https://github.com/quickenloans-mcp/panthor-skeleton) for an example skeleton.
 
 Never used Composer, Slim or Symfony before? Here are some resources:
 - [Composer - Getting Started](https://getcomposer.org/doc/00-intro.md)
