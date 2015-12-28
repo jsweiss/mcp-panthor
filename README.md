@@ -1,7 +1,7 @@
 # MCP Panthor
 
 [![Build Status](https://travis-ci.org/quickenloans-mcp/mcp-panthor.png)](https://travis-ci.org/quickenloans-mcp/mcp-panthor)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/quickenloans-mcp/mcp-panthor/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/quickenloans-mcp/mcp-panthor/?branch=master)
+[![Code Climate](https://codeclimate.com/github/quickenloans-mcp/mcp-panthor/badges/gpa.svg)](https://codeclimate.com/github/quickenloans-mcp/mcp-panthor)
 [![Latest Stable Version](https://poser.pugx.org/ql/mcp-panthor/version)](https://packagist.org/packages/ql/mcp-panthor)
 [![License](https://poser.pugx.org/ql/mcp-panthor/license)](https://packagist.org/packages/ql/mcp-panthor)
 
