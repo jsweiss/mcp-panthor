@@ -19,7 +19,7 @@ class TwigTemplateTest extends PHPUnit_Framework_TestCase
 
     public function setUp()
     {
-        $this->twig = new Twig_Environment(new Twig_Loader_Array);
+        $this->twig = new Twig_Environment(new Twig_Loader_Array([]));
     }
 
     public function testTwigTemplateRenders()
