@@ -70,8 +70,8 @@ class BaseHandler implements ExceptionHandlerInterface
             $context['severity'] = ErrorHandler::getErrorType($exception->getSeverity());
         }
 
-        $this->renderer->render($status, $context);
         $this->log($exception);
+        $this->renderer->render($status, $context);
 
         return true;
     }
