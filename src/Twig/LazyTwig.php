@@ -14,6 +14,20 @@ use Twig_Template;
 
 /**
  * A simple proxy for twig to lazy load templates and allow incremental context loading.
+ *
+ * This helps slightly decrease the amount of configuration required, as all templates can extend the same base
+ * DI service and set their custom template after instantiation.
+ *
+ * Example:
+ * ```yaml
+ * twig.template:
+ *     class: 'QL\Panthor\Twig\LazyTwig'
+ *     arguments: ['@twig.environment', '@twig.context']
+ *
+ * my.custom_template:
+ *     parent: 'twig.template'
+ *     calls: [['setTemplate', ['section/page.twig']]]
+ * ```
  */
 class LazyTwig implements TemplateInterface
 {
