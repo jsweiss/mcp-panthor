@@ -10,7 +10,7 @@ for reference.
 - In **BaseHandler**, errors are now logged before attempting to render a response.
 
 ### Added
-- Remove `QL\Panthor\Templating\TwigTemplate`
+- Add `QL\Panthor\Templating\TwigTemplate`
     - This is a non-lazy version of **LazyTwig**.
     - It should be used for twig rendering during error handling, as lazy loading is more error-prone.
 
