@@ -212,9 +212,13 @@ services:
         calls: [['attachSlim', ['@slim']]]
 
     panthor.error_handling.html_renderer.twig:
-        class: 'QL\Panthor\Twig\LazyTwig'
-        arguments: ['@twig.environment', '@twig.context']
-        calls: [['setTemplate', ['%error_handling.html_template%']]]
+        class: 'QL\Panthor\Templating\TwigTemplate'
+        arguments: ['@panthor.error_handling.html_renderer.twig_base', '@twig.context']
+
+    panthor.error_handling.html_renderer.twig_base:
+        class: 'Twig_Template'
+        factory: ['@twig.environment', 'loadTemplate']
+        arguments: ['%error_handling.html_template%']
 
     panthor.error_handling.problem_renderer:
         class: 'QL\Panthor\ErrorHandling\ExceptionRenderer\ProblemRenderer'
