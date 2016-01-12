@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [keepachangelog.com](http://keepachangelog.com)
 for reference.
 
+## [2.3.1] - 2016-01-12
+
+### Changed
+
+- DI Service `@panthor.error_handling.html_renderer.twig` now uses **TwigTemplate** instead of **LazyTwig**.
+- In **BaseHandler**, errors are now logged before attempting to render a response.
+
+### Added
+- Remove `QL\Panthor\Templating\TwigTemplate`
+    - This is a non-lazy version of **LazyTwig**.
+    - It should be used for twig rendering during error handling, as lazy loading is more error-prone.
+
 ## [2.3.0] - 2015-12-15
 
 Please note: This release has backwards compatibility breaks to remove links to proprietary packages.
