@@ -9,13 +9,23 @@ A thin PHP microframework built on Slim and Symfony.
 
 Slim + Symfony = :revolving_hearts:
 
-Panthor is a skeleton application that provides sensible defaults and more structure. Utilities are provided to
-simplify caching and dependency injection using Symfony Dependency Injection and Slim. It can be used for html
-applications, APIs, or both.
+Panthor uses the simplicity of Slim and provides a bit more structure for applications with additional Symfony
+components. Utilities and helpers are provided to simplify template caching and dependency injection using Symfony
+Dependency Injection and Slim. It can be used for html applications, APIs, or both.
 
 - `Slim/Slim` - The core microframework.
 - `Symfony/Config` - Cascading configuration to handle merging multiple config files.
 - `Symfony/DependencyInjection` - A robust and flexible dependency injection container.
+
+Here's a few of the features Panthor provides:
+
+- Standard interfaces for Controllers, Middleware, and Templates
+- Error Handling
+- Cookie Encryption with PECL Libsodium
+- All configuration through YAML (including Slim routes)
+- Support for [HTTP Problem](https://tools.ietf.org/html/draft-ietf-appsawg-http-problem)
+- Utilities for Unit Testing
+- Utilities for Templating
 
 ## Table of Contents
 
