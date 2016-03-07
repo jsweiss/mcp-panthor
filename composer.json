@@ -21,9 +21,10 @@
     "require": {
         "php": "~5.5 || ~7.0",
 
-        "ql/mcp-common": "~1.0",
-        "psr/log":       "*",
-        "slim/slim":     "~3.2",
+        "acclimate/container": "~1.0.0",
+        "ql/mcp-common":       "~1.0",
+        "psr/log":             "*",
+        "slim/slim":           "~3.2",
 
         "symfony/config":               "~3.0",
         "symfony/dependency-injection": "~3.0",
