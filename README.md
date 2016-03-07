@@ -86,11 +86,19 @@ Never used Composer, Slim or Symfony before? Here are some resources:
    > composer init
    > composer require ql/mcp-panthor ~2.3 paragonie/random_compat ~1.1
    >
-   > // Also require twig/twig if using html templating
+   > # Also require twig/twig if using html templating
    > composer require twig/twig ~1.20
    > ```
+   >
+   > Add autoloader configuration to `composer.json`:
+   >
+   > ```json
+   > "autoload": {
+   >     "psr-4": { "TestApplication\\": "src" }
+   > }
+   > ```
 
-3. `config.yml` should import other config resources.
+3. `configuration/config.yml` should import other config resources.
 
     > ```yaml
     > imports:
@@ -99,7 +107,7 @@ Never used Composer, Slim or Symfony before? Here are some resources:
     >     - resource: routes.yml
     > ```
 
-4. `di.yml` will contain service definitions for your application, such as controllers.
+4. `configuration/di.yml` will contain service definitions for your application, such as controllers.
 
     > ```yaml
     > services:
@@ -113,7 +121,7 @@ Never used Composer, Slim or Symfony before? Here are some resources:
     >             - '@slim.response'
     > ```
 
-5. `routes.yml` contains routes.
+5. `configuration/routes.yml` contains routes.
 
     > Routes is simply another config parameter passed into the DI container. It maps a route name to a url and list of
     > services to call.
@@ -125,7 +133,7 @@ Never used Composer, Slim or Symfony before? Here are some resources:
     >             stack: ['page.hello_world']
     > ```
 
-6. `bootstrap.php` should load the composer autoloader and return the DI container.
+6. `configuration/bootstrap.php` should load the composer autoloader and return the DI container.
 
     > ```php
     > <?php
@@ -141,7 +149,7 @@ Never used Composer, Slim or Symfony before? Here are some resources:
     > return Di::getDi($root, CachedContainer::class);
     > ```
 
-7. `index.php` loads the bootstrap and starts **Slim**.
+7. `public/index.php` loads the bootstrap and starts **Slim**.
 
     > ```php
     > <?php
@@ -157,10 +165,9 @@ Never used Composer, Slim or Symfony before? Here are some resources:
     > $container->get('slim')->run();
     > ```
 
-8. `TestController.php` is a simple class that can be **invoked** as a callable.
+8. `src/TestController.php` is a simple class that can be **invoked** as a callable.
 
     > ```php
-    >
     > <?php
     >
     > namespace TestApplication;
