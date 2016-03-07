@@ -96,7 +96,7 @@ services:
             - debug: '%debug%'
         configurator: ['@slim.configurator', 'configure']
         properties:
-            response: @slim.response
+            response: '@slim.response'
 
     panthor.slim.configurator:
         class: 'QL\Panthor\Bootstrap\SlimConfigurator'
