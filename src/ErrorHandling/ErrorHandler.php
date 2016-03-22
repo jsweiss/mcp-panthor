@@ -13,6 +13,7 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use QL\Panthor\Exception\NotFoundException;
 use Slim\Slim;
+use Throwable;
 
 /**
  * This handler requires:
@@ -179,24 +180,22 @@ class ErrorHandler
      *
      * @return void
      */
-    public function handleException(Exception $exception)
+    public function handleException($exception)
     {
+        if (!$exception instanceof Exception && !$exception instanceof Throwable) {
+            return;
+        }
+
         foreach ($this->handlers as $handler) {
-            $canHandle = false;
-            foreach ($handler->getHandledExceptions() as $exceptionType) {
-                if ($exception instanceof $exceptionType) {
-                    $canHandle = true;
-                    break;
-                }
-            }
-
-            if (!$canHandle) continue;
-
             $isHandled = false;
 
             try {
                 $isHandled = $handler->handle($exception);
+
             } catch (Exception $ex) {
+                break;
+
+            } catch (Throwable $ex) {
                 // If exception handler throws exception, break out of stack and rethrow.
                 break;
             }

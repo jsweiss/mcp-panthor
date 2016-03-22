@@ -7,13 +7,14 @@
 
 namespace QL\Panthor\ErrorHandling\ExceptionHandler;
 
-use Exception;
 use QL\Panthor\Exception\HTTPProblemException;
 use QL\Panthor\ErrorHandling\ExceptionHandlerInterface;
 use QL\Panthor\ErrorHandling\ExceptionRendererInterface;
 
 class HTTPProblemHandler implements ExceptionHandlerInterface
 {
+    use HandledExceptionsTrait;
+
     /**
      * @type ExceptionRendererInterface
      */
@@ -25,30 +26,28 @@ class HTTPProblemHandler implements ExceptionHandlerInterface
     public function __construct(ExceptionRendererInterface $renderer)
     {
         $this->renderer = $renderer;
+
+        $this->setHandledThrowables([
+            HTTPProblemException::CLASS
+        ]);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getHandledExceptions()
+    public function handle($throwable)
     {
-        return [HTTPProblemException::CLASS];
-    }
+        if (!$this->canHandleThrowable($throwable)) {
+            return false;
+        }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function handle(Exception $exception)
-    {
-        if (!$exception instanceof HTTPProblemException) return false;
-
-        $status = $exception->problem()->status();
+        $status = $throwable->problem()->status();
 
         $context = [
-            'message' => $exception->getMessage(),
+            'message' => $throwable->getMessage(),
             'status' => $status,
             'severity' => 'Problem',
-            'exception' => $exception
+            'exception' => $throwable
         ];
 
         $this->renderer->render($status, $context);

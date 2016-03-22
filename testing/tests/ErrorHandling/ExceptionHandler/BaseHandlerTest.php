@@ -22,23 +22,6 @@ class BaseHandlerTest extends PHPUnit_Framework_TestCase
 {
     use MockeryAssistantTrait;
 
-    public function testBaseHandlerHandlesEverything()
-    {
-        $renderer = Mockery::mock(ExceptionRendererInterface::CLASS);
-
-        $handler = new BaseHandler($renderer);
-
-        $handled = $handler->getHandledExceptions();
-        $this->assertCount(1, $handled);
-
-        $handled = $handled[0];
-
-        $this->assertInstanceOf($handled, new Exception);
-        $this->assertInstanceOf($handled, new NotFoundException);
-        $this->assertInstanceOf($handled, new RequestException);
-        $this->assertInstanceOf($handled, new BaseException);
-    }
-
     public function testStatusAndContextPassedToRenderer()
     {
         $renderer = Mockery::mock(ExceptionRendererInterface::CLASS);
@@ -95,7 +78,7 @@ class BaseHandlerTest extends PHPUnit_Framework_TestCase
         $this->assertSame('E_ERROR', $msg['context']['errorType']);
         $this->assertSame('ErrorException', $msg['context']['errorClass']);
 
-        $this->assertContains('/testing/tests/ErrorHandling/ExceptionHandler/BaseHandlerTest.php:86', $msg['context']['errorStacktrace']);
+        $this->assertContains('/testing/tests/ErrorHandling/ExceptionHandler/BaseHandlerTest.php:69', $msg['context']['errorStacktrace']);
     }
 
     public function testPreviousExceptionIsLoggedInStacktrace()
@@ -118,10 +101,10 @@ class BaseHandlerTest extends PHPUnit_Framework_TestCase
         $this->assertSame('QL\Panthor\Exception\Exception', $msg['context']['errorType']);
         $this->assertSame('QL\Panthor\Exception\Exception', $msg['context']['errorClass']);
 
-        $this->assertContains('/testing/tests/ErrorHandling/ExceptionHandler/BaseHandlerTest.php:108', $msg['context']['errorStacktrace']);
+        $this->assertContains('/testing/tests/ErrorHandling/ExceptionHandler/BaseHandlerTest.php:91', $msg['context']['errorStacktrace']);
         $this->assertContains('prev exception', $msg['context']['errorStacktrace']);
 
-        $this->assertContains('/testing/tests/ErrorHandling/ExceptionHandler/BaseHandlerTest.php:109', $msg['context']['errorStacktrace']);
+        $this->assertContains('/testing/tests/ErrorHandling/ExceptionHandler/BaseHandlerTest.php:92', $msg['context']['errorStacktrace']);
         $this->assertContains('ex msg', $msg['context']['errorStacktrace']);
     }
 }

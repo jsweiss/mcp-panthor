@@ -7,7 +7,6 @@
 
 namespace QL\Panthor\ErrorHandling\ExceptionHandler;
 
-use Exception;
 use QL\Panthor\ErrorHandling\ExceptionHandlerInterface;
 
 /**
@@ -16,22 +15,19 @@ use QL\Panthor\ErrorHandling\ExceptionHandlerInterface;
  * The callable handler should have the following signature:
  *
  * ```
- * function(Exception $exception) : bool {
+ * function(Throwable $throwable) : bool {
  *   // logic
  * }
  * ```
  */
 class GenericHandler implements ExceptionHandlerInterface
 {
+    use HandledExceptionsTrait;
+
     /**
      * @type callable
      */
     private $handler;
-
-    /**
-     * @type string[]
-     */
-    private $supportedTypes;
 
     /**
      * @param string[] $supportedTypes
@@ -39,23 +35,19 @@ class GenericHandler implements ExceptionHandlerInterface
      */
     public function __construct(array $supportedTypes, callable $handler)
     {
-        $this->supportedTypes = $supportedTypes;
         $this->handler = $handler;
+        $this->setHandledThrowables($supportedTypes);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getHandledExceptions()
+    public function handle($throwable)
     {
-        return $this->supportedTypes;
-    }
+        if (!$this->canHandleThrowable($throwable)) {
+            return false;
+        }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function handle(Exception $exception)
-    {
-        return call_user_func($this->handler, $exception);
+        return call_user_func($this->handler, $throwable);
     }
 }

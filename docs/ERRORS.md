@@ -50,7 +50,7 @@ class ErrorHandler
 {
     public function __construct(LoggerInterface $logger = null);
 
-    public function handleException(Exception $exception);
+    public function handleException($throwable);
     public function handleError($errno, $errstr, $errfile, $errline, array $errcontext = []);
     public static function handleFatalError();
 }
@@ -106,15 +106,15 @@ Splunk, LogEntries or some other logging service, be sure to customize this serv
 
 ### Exception Handlers
 
-Exceptions are routed through a list of exception handlers that act as a stack. We use a stack of separate handlers
+Throwables are routed through a list of exception handlers that act as a stack. We use a stack of separate handlers
 so different types of exceptions can be handled differently. For example, we may want to handle **NotFoundException**
 differently from **HTTPProblemException** or `\ErrorException`.
 
-The exception will be sent to the handler that responds that it can handle the exception class type. If the handler
+The throwable will be sent to the handler that responds that it can handle the exception class type. If the handler
 responds with `true`, **ErrorHandler** stops processing the stack and assumes the exception was handled.
 
 Because of the way exceptions are processed through the stack, The **most specific handlers should be first
-in the stack**. Always have a generic `\Exception` handler last. This ensures the exception will always be handled.
+in the stack**. Always have a generic `\Throwable` handler last. This ensures the exception will always be handled.
 Otherwise the exception will be an **unhandled exception** and cause a *white screen of death*.
 
 The default handler stack for panthor is as follows:

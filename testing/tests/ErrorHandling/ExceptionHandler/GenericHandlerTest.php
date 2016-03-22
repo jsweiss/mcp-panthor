@@ -14,17 +14,6 @@ use QL\Panthor\Exception\RequestException;
 
 class GenericHandlerTest extends PHPUnit_Framework_TestCase
 {
-    public function testHandlesNothingIfNoSupportedTypes()
-    {
-        $handler = new GenericHandler([], function() {});
-
-        $this->assertCount(0, $handler->getHandledExceptions());
-
-        $this->assertNull($handler->handle(new Exception));
-        $this->assertNull($handler->handle(new RequestException));
-        $this->assertNull($handler->handle(new BaseException));
-    }
-
     public function testHandlerCalledIfSupported()
     {
         $exceptions = [];

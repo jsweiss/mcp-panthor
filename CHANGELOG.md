@@ -2,10 +2,16 @@
 All notable changes to this project will be documented in this file. See [keepachangelog.com](http://keepachangelog.com)
 for reference.
 
+## [2.4.0] - 2016-03-22
+
+### Changed
+- **Error Handling**
+    - **ErrorHandler** now supports PHP 7 and **throwable errors**.
+    - Added **HandledExceptionsTrait** to typecheck for a handler's ability to handle an exception or PHP 7 **throwable**.
+
 ## [2.3.1] - 2016-01-12
 
 ### Changed
-
 - DI Service `@panthor.error_handling.html_renderer.twig` now uses **TwigTemplate** instead of **LazyTwig**.
 - In **BaseHandler**, errors are now logged before attempting to render a response.
 

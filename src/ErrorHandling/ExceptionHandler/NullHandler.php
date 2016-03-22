@@ -7,7 +7,6 @@
 
 namespace QL\Panthor\ErrorHandling\ExceptionHandler;
 
-use Exception;
 use QL\Panthor\ErrorHandling\ExceptionHandlerInterface;
 
 /**
@@ -18,15 +17,7 @@ class NullHandler implements ExceptionHandlerInterface
     /**
      * {@inheritdoc}
      */
-    public function getHandledExceptions()
-    {
-        return [];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function handle(Exception $exception)
+    public function handle($throwable)
     {
         return false;
     }
