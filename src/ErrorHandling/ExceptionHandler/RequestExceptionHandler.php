@@ -7,7 +7,6 @@
 
 namespace QL\Panthor\ErrorHandling\ExceptionHandler;
 
-use Exception;
 use QL\Panthor\ErrorHandling\ExceptionHandlerInterface;
 use QL\Panthor\ErrorHandling\ExceptionRendererInterface;
 use QL\Panthor\Exception\RequestException;
@@ -17,6 +16,8 @@ use QL\Panthor\Exception\RequestException;
  */
 class RequestExceptionHandler implements ExceptionHandlerInterface
 {
+    use HandledExceptionsTrait;
+
     /**
      * @type ExceptionRendererInterface
      */
@@ -28,33 +29,31 @@ class RequestExceptionHandler implements ExceptionHandlerInterface
     public function __construct(ExceptionRendererInterface $renderer)
     {
         $this->renderer = $renderer;
+
+        $this->setHandledThrowables([
+            RequestException::CLASS
+        ]);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getHandledExceptions()
+    public function handle($throwable)
     {
-        return [RequestException::CLASS];
-    }
+        if (!$this->canHandleThrowable($throwable)) {
+            return false;
+        }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function handle(Exception $exception)
-    {
-        if (!$exception instanceof RequestException) return false;
-
-        $status = $exception->getCode();
+        $status = $throwable->getCode();
         if ($status < 400 || $status >= 500) {
             $status = 400;
         }
 
         $context = [
-            'message' => $exception->getMessage(),
+            'message' => $throwable->getMessage(),
             'status' => $status,
             'severity' => 'Exception',
-            'exception' => $exception
+            'exception' => $throwable
         ];
 
         $this->renderer->render($status, $context);

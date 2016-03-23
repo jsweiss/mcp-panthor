@@ -8,22 +8,16 @@
 namespace QL\Panthor\ErrorHandling;
 
 use Exception;
+use Throwable;
 
 interface ExceptionHandlerInterface
 {
     /**
-     * Return a list of full qualified class names of exceptions this handler can handle.
+     * Handle a throwable, and return whether it was handled and the remaining stack should be aborted.
      *
-     * @return string[]
-     */
-    public function getHandledExceptions();
-
-    /**
-     * Handle an exception, and return whether the exception was handled and the remaining stack should be aborted.
-     *
-     * @param Exception $exception
+     * @param Exception|Throwable $throwable
      *
      * @return bool
      */
-    public function handle(Exception $exception);
+    public function handle($throwable);
 }

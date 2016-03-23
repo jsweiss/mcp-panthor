@@ -7,7 +7,6 @@
 
 namespace QL\Panthor\ErrorHandling\ExceptionHandler;
 
-use Exception;
 use QL\Panthor\ErrorHandling\ExceptionHandlerInterface;
 use QL\Panthor\ErrorHandling\ExceptionRendererInterface;
 use QL\Panthor\Exception\NotFoundException;
@@ -17,6 +16,8 @@ use QL\Panthor\Exception\NotFoundException;
  */
 class NotFoundHandler implements ExceptionHandlerInterface
 {
+    use HandledExceptionsTrait;
+
     /**
      * @type ExceptionRendererInterface
      */
@@ -28,29 +29,27 @@ class NotFoundHandler implements ExceptionHandlerInterface
     public function __construct(ExceptionRendererInterface $renderer)
     {
         $this->renderer = $renderer;
+
+        $this->setHandledThrowables([
+            NotFoundException::CLASS
+        ]);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getHandledExceptions()
+    public function handle($throwable)
     {
-        return [NotFoundException::CLASS];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function handle(Exception $exception)
-    {
-        if (!$exception instanceof NotFoundException) return false;
+        if (!$this->canHandleThrowable($throwable)) {
+            return false;
+        }
 
         $status = 404;
         $context = [
             'message' => 'Page Not Found',
             'status' => $status,
             'severity' => 'NotFound',
-            'exception' => $exception
+            'exception' => $throwable
         ];
 
         $this->renderer->render($status, $context);

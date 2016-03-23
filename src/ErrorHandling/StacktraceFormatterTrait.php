@@ -8,6 +8,7 @@
 namespace QL\Panthor\ErrorHandling;
 
 use Exception;
+use Throwable;
 
 trait StacktraceFormatterTrait
 {
@@ -71,7 +72,7 @@ trait StacktraceFormatterTrait
 
         $trace = '';
         foreach ($exceptions as $ex) {
-            if ($ex instanceof Exception) {
+            if ($ex instanceof Exception || $ex instanceof Throwable) {
                 $trace .= $this->formatExceptionStacktrace($ex);
             }
         }
@@ -80,12 +81,16 @@ trait StacktraceFormatterTrait
     }
 
     /**
-     * @param Exception $exception
+     * @param Exception|Throwable $exception
      *
      * @return string
      */
-    private function formatExceptionStacktrace(Exception $exception)
+    private function formatExceptionStacktrace($exception)
     {
+        if (!$exception instanceof Exception && !$exception instanceof Throwable) {
+            return '';
+        }
+
         $trace = $this->formatStacktraceEntry('ERR', [
             'function' => $exception->getMessage(),
             'file' => $exception->getFile(),

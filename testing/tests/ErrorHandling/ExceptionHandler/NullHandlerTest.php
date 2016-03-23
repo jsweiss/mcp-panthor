@@ -23,11 +23,4 @@ class NullHandlerTest extends PHPUnit_Framework_TestCase
 
         $this->assertFalse($handler->handle(new Exception));
     }
-
-    public function testNullHandlerCantEven()
-    {
-        $handler = new NullHandler;
-
-        $this->assertCount(0, $handler->getHandledExceptions());
-    }
 }

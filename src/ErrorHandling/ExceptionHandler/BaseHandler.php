@@ -15,6 +15,7 @@ use QL\Panthor\ErrorHandling\ExceptionHandlerInterface;
 use QL\Panthor\ErrorHandling\ExceptionRendererInterface;
 use QL\Panthor\ErrorHandling\ErrorHandler;
 use QL\Panthor\ErrorHandling\StacktraceFormatterTrait;
+use Throwable;
 
 /**
  * Handler for base exception. This should be attached last to ensure if no other handler can handle an exception, this one can.
@@ -23,6 +24,7 @@ use QL\Panthor\ErrorHandling\StacktraceFormatterTrait;
  */
 class BaseHandler implements ExceptionHandlerInterface
 {
+    use HandledExceptionsTrait;
     use StacktraceFormatterTrait;
 
     /**
@@ -43,68 +45,71 @@ class BaseHandler implements ExceptionHandlerInterface
     {
         $this->renderer = $renderer;
         $this->logger = $logger ?: new NullLogger;
+
+        $this->setHandledThrowables([
+            Exception::CLASS,
+            Throwable::CLASS
+        ]);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getHandledExceptions()
+    public function handle($throwable)
     {
-        return [Exception::CLASS];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function handle(Exception $exception)
-    {
-        $status = 500;
-        $context = [
-            'message' => $exception->getMessage(),
-            'status' => $status,
-            'severity' => 'Exception',
-            'exception' => $exception
-        ];
-
-        if ($exception instanceof ErrorException) {
-            $context['severity'] = ErrorHandler::getErrorType($exception->getSeverity());
+        if (!$this->canHandleThrowable($throwable)) {
+            return false;
         }
 
-        $this->log($exception);
+        $status = 500;
+        $context = [
+            'message' => $throwable->getMessage(),
+            'status' => $status,
+            'severity' => 'Exception',
+            'exception' => $throwable
+        ];
+
+        if ($throwable instanceof ErrorException) {
+            $context['severity'] = ErrorHandler::getErrorType($throwable->getSeverity());
+        }
+
+        $this->log($throwable);
         $this->renderer->render($status, $context);
 
         return true;
     }
 
+
     /**
-     * @param Exception $exception
+     * @param Exception|Throwable $exception
      *
      * @return void
      */
-    private function log(Exception $exception)
+    private function log($throwable)
     {
-        $class = get_class($exception);
+        $class = get_class($throwable);
         $code = 0;
         $type = $class;
-        if ($exception instanceof ErrorException) {
-            $code = $exception->getSeverity();
+
+        if ($throwable instanceof ErrorException) {
+            $code = $throwable->getSeverity();
             $type = ErrorHandler::getErrorType($code);
         }
 
         // Unpack exceptions
-        $exceptions = [$exception];
-        $e = $exception;
+        $throwables = [$throwable];
+        $e = $throwable;
         while ($e = $e->getPrevious()) {
-            $exceptions[] = $e;
+            $throwables[] = $e;
         }
 
         $context = [
             'errorCode' => $code,
             'errorType' => $type,
             'errorClass' => $class,
-            'errorStacktrace' => $this->formatStacktraceForExceptions($exceptions)
+            'errorStacktrace' => $this->formatStacktraceForExceptions($throwables)
         ];
 
-        $this->logger->error($exception->getMessage(), $context);
+        $this->logger->error($throwable->getMessage(), $context);
     }
 }
