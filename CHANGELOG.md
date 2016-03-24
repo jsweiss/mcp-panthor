@@ -2,12 +2,15 @@
 All notable changes to this project will be documented in this file. See [keepachangelog.com](http://keepachangelog.com)
 for reference.
 
-## [2.4.0] - 2016-03-22
+## [2.4.0] - 2016-03-24
 
 ### Changed
 - **Error Handling**
     - **ErrorHandler** now supports PHP 7 and **throwable errors**.
     - Added **HandledExceptionsTrait** to typecheck for a handler's ability to handle an exception or PHP 7 **throwable**.
+    - **Note:** ExceptionHandlerInterface has changed, if you wrote your own handler it must be updated.
+        - See [ExceptionHandlerInterface.php](src/ErrorHandling/ExceptionHandlerInterface.php)
+        - See [NotFoundHandler.php](src/ErrorHandling/ExceptionHandler/NotFoundHandler.php) for an example.
 
 ## [2.3.1] - 2016-01-12
 

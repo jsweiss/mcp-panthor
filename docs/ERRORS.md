@@ -146,6 +146,64 @@ The default handler stack for panthor is as follows:
 
 This list may be customized, or added to by changing di configuration for the error handling services.
 
+### Writing an Exception Handler
+
+If you have exceptions you would like to handle in specific ways, you can write your own handler and attach it to the **ErrorHandler**.
+
+Exception Handlers must implement [ExceptionHandlerInterface](../src/ErrorHandling/ExceptionHandlerInterface.php):
+```php
+namespace QL\Panthor\ErrorHandling;
+
+use Exception;
+use Throwable;
+
+interface ExceptionHandlerInterface
+{
+    /**
+     * Handle a throwable, and return whether it was handled and the remaining stack should be aborted.
+     *
+     * @param Exception|Throwable $throwable
+     *
+     * @return bool
+     */
+    public function handle($throwable);
+}
+```
+
+[HandledExceptionsTrait](../src/ErrorHandling/ExceptionHandler/HandledExceptionsTrait.php) provides some convenience methods for configuring which throwables a handler should handle, and type checking against that list (including `\Throwable` and `\Exception` for both PHP 5.x and PHP 7 support).
+
+##### Example Exception Handler:
+```php
+use QL\Panthor\ErrorHandling\ExceptionHandlerInterface;
+use FooException;
+use BarException;
+
+class FoobarHandler implements ExceptionHandlerInterface
+{
+    use HandledExceptionsTrait;
+
+    public function __construct()
+    {
+        $this->setHandledThrowables([
+            FooException::class,
+            BarException::class
+        ]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function handle($throwable)
+    {
+        if (!$this->canHandleThrowable($throwable)) return false;
+
+        // render a custom error page here
+
+        return true;
+    }
+}
+```
+
 ## Error Handling for APIs
 
 By default, errors are rendered to html templates and only as JSON if **HTTP Problem** is specifically used.
