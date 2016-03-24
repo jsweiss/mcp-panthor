@@ -13,6 +13,7 @@
     - [Error Logging](#error-logging)
     - [Customization](#customization)
     - [Exception Handlers](#exception-handlers)
+    - [Writing an Exception Handler](#writing-an-exception-handler)
 - [Error Handling for APIs](#error-handling-for-apis)
 
 ## Background
